@@ -1,0 +1,33 @@
+# Backend
+backend/target/
+backend/uploads/
+*.class
+.idea/
+*.iml
+.vscode/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+.DS_Store
+backend/.maven/
+
+# Secrets / config cuc bo
+.env
+.env.*
+!.env.example
+**/application-local.yml
+**/application-prod.yml
+**/application-*.properties
+*.key
+*.pem
+*.p12
+*.jks
+*.log
+logs/
+*.sql.gz
+*.bak
+graphify-out/
+.claude/

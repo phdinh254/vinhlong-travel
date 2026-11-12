@@ -1,0 +1,80 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: vinhlong-tour
+  datasource:
+    # XAMPP mặc định: user root, mật khẩu rỗng, cổng 3306
+    url: ${DB_URL:jdbc:mysql://localhost:3306/vinhlongtour?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh}
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none            # Cấu trúc bảng do database/01_schema.sql tạo
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      # XAMPP dùng MariaDB. Nếu dùng MySQL 8 thật, đặt DB_DIALECT=org.hibernate.dialect.MySQLDialect
+      hibernate.dialect: ${DB_DIALECT:org.hibernate.dialect.MariaDBDialect}
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 20MB
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
+
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  cors-allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+  upload-dir: ${UPLOAD_DIR:uploads}
+  demo-data: false              # true: tự sinh dữ liệu mẫu khi CSDL trống (dùng cho H2)
+
+  jwt:
+    secret: ${JWT_SECRET:doi-chuoi-bi-mat-nay-thanh-chuoi-dai-it-nhat-32-ky-tu-truoc-khi-trien-khai}
+    expiration-minutes: 1440
+
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
+
+  admin:                        # Tài khoản admin được tạo khi khởi động lần đầu
+    email: ${ADMIN_EMAIL:admin@vinhlongtour.vn}
+    password: ${ADMIN_PASSWORD:Admin@123}
+    name: Quản trị viên
+
+  booking:
+    hold-minutes: 30            # Q31: thời gian giữ chỗ khi chưa thanh toán
+    deposit-percent: 30         # Q32: tỷ lệ đặt cọc tối thiểu
+
+  vnpay:
+    tmn-code: ${VNPAY_TMN_CODE:}
+    hash-secret: ${VNPAY_HASH_SECRET:}
+    pay-url: ${VNPAY_PAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+    return-url: ${VNPAY_RETURN_URL:http://localhost:5173/thanh-toan/ket-qua}
+    # Khi chạy localhost, VNPay không gọi được IPN về máy bạn.
+    # true = cập nhật kết quả tại bước return (CHỈ dùng khi phát triển). Production đặt false.
+    process-on-return: ${VNPAY_PROCESS_ON_RETURN:true}
+
+logging:
+  level:
+    vn.edu.tvu.vinhlongtour: INFO
+---
+spring:
+  config:
+    activate:
+      on-profile: dev-h2
+  datasource:
+    url: jdbc:h2:mem:vinhlongtour;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate.dialect: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+app:
+  demo-data: true
