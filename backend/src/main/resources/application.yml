@@ -1,0 +1,15 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: vinhlong-tour
+  datasource:
+    # Mặc định khớp docker-compose.yml ở thư mục gốc dự án
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/vinhlongtour}
+    username: ${DB_USER:vinhlong}
+    password: ${DB_PASSWORD:vinhlong}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate   # Bảng do Flyway tạo (src/main/resources/db/migration), Hibernate chỉ kiểm tra
