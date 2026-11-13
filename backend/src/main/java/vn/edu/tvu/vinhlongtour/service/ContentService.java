@@ -56,9 +56,12 @@ public class ContentService {
 
     /* ---------- Tin tức ---------- */
     @Transactional(readOnly = true)
-    public Page<NewsDto> publishedNews(int page, int size) {
-        return tinTucRepo.findByTrangThaiOrderByNgayDangDesc("XUAT_BAN", PageRequest.of(page, Math.min(size, 50)))
-                .map(Mapper::toNews);
+    public Page<NewsDto> publishedNews(int page, int size, String chuyenMuc) {
+        PageRequest pr = PageRequest.of(page, Math.min(size, 50));
+        Page<TinTuc> result = (chuyenMuc == null || chuyenMuc.isBlank())
+                ? tinTucRepo.findByTrangThaiOrderByNgayDangDesc("XUAT_BAN", pr)
+                : tinTucRepo.findByTrangThaiAndChuyenMucOrderByNgayDangDesc("XUAT_BAN", chuyenMuc, pr);
+        return result.map(Mapper::toNews);
     }
 
     @Transactional
@@ -83,6 +86,7 @@ public class ContentService {
         t.setTomTat(r.tomTat());
         t.setNoiDung(r.noiDung());
         t.setAnhBia(r.anhBia());
+        t.setChuyenMuc(r.chuyenMuc() == null || r.chuyenMuc().isBlank() ? "TIN_TUC" : r.chuyenMuc());
         if ("XUAT_BAN".equals(r.trangThai()) && t.getNgayDang() == null) t.setNgayDang(LocalDateTime.now());
         t.setTrangThai(r.trangThai());
         if (t.getTacGia() == null) t.setTacGia(support.currentAccount());

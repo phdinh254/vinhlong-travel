@@ -9,6 +9,7 @@ import java.util.Optional;
 
 public interface TinTucRepository extends JpaRepository<TinTuc, Integer> {
     Page<TinTuc> findByTrangThaiOrderByNgayDangDesc(String trangThai, Pageable pageable);
+    Page<TinTuc> findByTrangThaiAndChuyenMucOrderByNgayDangDesc(String trangThai, String chuyenMuc, Pageable pageable);
     Optional<TinTuc> findBySlugAndTrangThai(String slug, String trangThai);
     boolean existsBySlug(String slug);
 }

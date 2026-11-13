@@ -20,12 +20,22 @@ public final class Mapper {
     }
 
     public static TourCard toCard(Tour t, BigDecimal giaTu) {
+        return toCard(t, giaTu, null);
+    }
+
+    /** dotGanNhat: đợt đang mở bán sớm nhất (có thể null) – dùng để hiện ngày đi, điểm đón, số chỗ còn */
+    public static TourCard toCard(Tour t, BigDecimal giaTu, DotKhoiHanh dotGanNhat) {
         String moTa = t.getMoTa() == null ? null : t.getMoTa().replaceAll("<[^>]*>", "");
         if (moTa != null && moTa.length() > 180) moTa = moTa.substring(0, 180) + "…";
         return new TourCard(t.getTourId(), t.getMaTour(), t.getTenTour(), t.getThoiLuong(), anhDaiDien(t), giaTu,
                 t.getLoaiHinhs().stream().map(LoaiHinh::getTenLoaiHinh).sorted().toList(),
                 t.getKhuVucs().stream().map(KhuVuc::getTenKhuVuc).sorted().toList(),
-                t.getNoiBat(), t.getTrangThai(), moTa);
+                t.getNoiBat(), t.getTrangThai(), moTa, t.getSoNgay(),
+                dotGanNhat == null ? null : dotGanNhat.getNgayGioDi(),
+                dotGanNhat == null ? null : dotGanNhat.getDiemDons().stream()
+                        .sorted(Comparator.comparing(DotKhoiHanhDiemDon::getGioDon, Comparator.nullsLast(Comparator.naturalOrder())))
+                        .map(d -> d.getDiemDon().getTenDiemDon()).findFirst().orElse(null),
+                dotGanNhat == null ? null : dotGanNhat.getSucChuaToiDa() - dotGanNhat.getSoChoDaDat());
     }
 
     public static List<NgayDto> toNgays(List<NgayLichTrinh> ngays) {
@@ -76,6 +86,6 @@ public final class Mapper {
 
     public static NewsDto toNews(TinTuc t) {
         return new NewsDto(t.getTinTucId(), t.getTieuDe(), t.getSlug(), t.getTomTat(), t.getNoiDung(), t.getAnhBia(),
-                t.getTrangThai(), t.getLuotXem(), t.getNgayDang(), t.getNgayTao());
+                t.getTrangThai(), t.getLuotXem(), t.getNgayDang(), t.getNgayTao(), t.getChuyenMuc());
     }
 }

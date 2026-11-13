@@ -3,11 +3,19 @@ import api, { errMsg } from '../../api'
 import { Alert, Loading } from '../../components/ui.jsx'
 
 const FIELDS = [
-  ['GIOI_THIEU', 'Nội dung trang Giới thiệu (HTML)', true],
+  ['GIOI_THIEU', 'Lời giới thiệu đơn vị (HTML, hiện ở khung cuối trang Giới thiệu)', true],
   ['HOTLINE', 'Hotline'],
   ['EMAIL', 'Email liên hệ'],
   ['DIA_CHI', 'Địa chỉ'],
   ['BAN_DO_NHUNG', 'Link nhúng bản đồ (Google Maps embed URL)'],
+  ['GIO_LAM_VIEC', 'Giờ hỗ trợ hiển thị ở footer (VD: Hỗ trợ 7:00 – 21:00)'],
+  ['FACEBOOK', 'Link Facebook'],
+  ['INSTAGRAM', 'Link Instagram'],
+  ['YOUTUBE', 'Link YouTube'],
+  ['TIKTOK', 'Link TikTok'],
+  ['CS_DIEU_KHOAN', 'Điều khoản đặt tour (HTML)', true],
+  ['CS_BAO_MAT', 'Chính sách bảo mật (HTML)', true],
+  ['CS_HUY_TOUR', 'Chính sách hủy tour (HTML)', true],
 ]
 
 export default function PageConfig() {

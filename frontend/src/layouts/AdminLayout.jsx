@@ -7,7 +7,7 @@ export default function AdminLayout() {
   return (
     <div className="admin">
       <aside>
-        <Link to="/admin" className="brand">🌴 Quản trị</Link>
+        <Link to="/admin" className="brand"><img src="/logo-dark.svg" alt="Vĩnh Long Travel" height="40" /></Link>
         <NavLink to="/admin" end>Tổng quan</NavLink>
         <div className="group">Dịch vụ (Tour)</div>
         <NavLink to="/admin/tours">Tour & đợt khởi hành</NavLink>

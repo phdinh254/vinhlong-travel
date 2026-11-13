@@ -69,7 +69,7 @@ export default function Booking() {
       <p className="muted">Khởi hành {fmtDateTime(dot.ngayGioDi)} · Còn {dot.soChoConLai} chỗ · Mã đợt {dot.maDot}</p>
       {!user && <div className="alert" style={{ marginBottom: 16 }}>Bạn đang đặt với tư cách <b>khách vãng lai</b>. <Link to={`/dang-nhap?next=/dat-tour/${dotId}`}>Đăng nhập</Link> để quản lý đơn dễ hơn.</div>}
 
-      <form onSubmit={submit} className="grid" style={{ gridTemplateColumns: '2fr 1fr' }}>
+      <form onSubmit={submit} className="grid grid-main">
         <div className="stack">
           <div className="card">
             <h3>Thông tin người đặt</h3>

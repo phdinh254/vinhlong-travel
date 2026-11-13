@@ -31,6 +31,16 @@ public class TourService {
     /** Tìm kiếm & lọc tour (Q02, Q03, Q07) */
     public Page<TourCard> search(String q, Integer loaiHinhId, Integer khuVucId, Integer dichVuId,
                                  Boolean noiBat, String trangThai, int page, int size) {
+        return search(q, loaiHinhId, khuVucId, dichVuId, null, null, noiBat, trangThai, page, size);
+    }
+
+    /**
+     * diemDenId: tour có hoạt động tại điểm đến này trong lịch trình mẫu.
+     * soNgay: 1, 2 = đúng số ngày; 3 = từ 3 ngày trở lên.
+     */
+    public Page<TourCard> search(String q, Integer loaiHinhId, Integer khuVucId, Integer dichVuId,
+                                 Integer diemDenId, Integer soNgay,
+                                 Boolean noiBat, String trangThai, int page, int size) {
         Specification<Tour> spec = (root, query, cb) -> {
             query.distinct(true);
             Predicate p = cb.conjunction();
@@ -53,12 +63,22 @@ public class TourService {
                 p = cb.and(p, cb.equal(j.get("dichVu").get("dichVuId"), dichVuId),
                         cb.equal(j.get("loaiApDung"), TourDichVu.BAO_GOM));
             }
+            if (diemDenId != null) {
+                Join<Tour, NgayLichTrinh> ngay = root.join("ngayLichTrinhs");
+                Join<NgayLichTrinh, HoatDongLichTrinh> hd = ngay.join("hoatDongs");
+                p = cb.and(p, cb.equal(hd.get("diemDen").get("diemDenId"), diemDenId));
+            }
+            if (soNgay != null) {
+                p = cb.and(p, soNgay >= 3 ? cb.ge(root.get("soNgay"), 3) : cb.equal(root.get("soNgay"), soNgay));
+            }
             if (Boolean.TRUE.equals(noiBat)) p = cb.and(p, cb.isTrue(root.get("noiBat")));
             return p;
         };
         LocalDateTime now = LocalDateTime.now();
         return tourRepo.findAll(spec, PageRequest.of(page, Math.min(size, 50), Sort.by(Sort.Direction.DESC, "noiBat", "tourId")))
-                .map(t -> Mapper.toCard(t, dotRepo.findGiaThapNhat(t.getTourId(), now)));
+                .map(t -> Mapper.toCard(t, dotRepo.findGiaThapNhat(t.getTourId(), now),
+                        dotRepo.findDangMoBan(t.getTourId(), now).stream()
+                                .filter(d -> "MO_BAN".equals(d.getTrangThai())).findFirst().orElse(null)));
     }
 
     public TourDetail detailPublic(Integer id) {

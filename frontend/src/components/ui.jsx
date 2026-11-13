@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { imgUrl, money, uploadImage, errMsg } from '../api'
 import { Link } from 'react-router-dom'
+import { tourImage, tenKhuVuc } from '../tourUtils.js'
 
 export function Badge({ map, value }) {
   const [label, cls] = map[value] || [value, 'muted']
@@ -42,27 +43,49 @@ export function Modal({ title, onClose, children }) {
   )
 }
 
-export function TourCard({ t }) {
-  const img = imgUrl(t.anhDaiDien)
+const ngayNgan = (v) => new Date(v).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })
+
+/**
+ * Thẻ tour: ảnh 4:3, nhãn, thời lượng, điểm khởi hành, giá, 2 nút hành động.
+ * onCompare (tùy chọn): hiện nút "So sánh" trên ảnh; compared = đang được chọn để so sánh.
+ */
+export function TourCard({ t, onCompare, compared = false }) {
+  const sapHet = t.choConLai != null && t.choConLai > 0 && t.choConLai <= 5
   return (
-    <div className="card flush tour-card">
-      <Link to={`/tour/${t.tourId}`} className="thumb" style={img ? { backgroundImage: `url(${img})` } : undefined}>
-        {t.noiBat && <span className="badge">Nổi bật</span>}
+    <article className="tour-card">
+      <Link to={`/tour/${t.tourId}`} className="thumb" aria-label={t.tenTour}>
+        <img src={tourImage(t)} alt="" loading="lazy" />
+        <span className="tc-tags">
+          {t.noiBat && <span className="tc-tag hot">Nổi bật</span>}
+          {sapHet && <span className="tc-tag">Còn {t.choConLai} chỗ</span>}
+        </span>
       </Link>
+      {onCompare && (
+        <button type="button" className={`tc-compare ${compared ? 'on' : ''}`} onClick={() => onCompare(t)} aria-pressed={compared}>
+          {compared ? '✓ Đang so sánh' : '+ So sánh'}
+        </button>
+      )}
       <div className="body">
-        <div className="chips">{t.khuVucs.map((k) => <span key={k} className="badge info">{k}</span>)}</div>
+        <div className="tc-region">{(t.khuVucs || []).map(tenKhuVuc).join(' · ')}</div>
         <h3><Link to={`/tour/${t.tourId}`}>{t.tenTour}</Link></h3>
-        <div className="muted small">⏱ {t.thoiLuong} · Mã {t.maTour}</div>
+        <ul className="tc-facts">
+          <li><span aria-hidden="true">⏱</span> {t.thoiLuong}</li>
+          <li><span aria-hidden="true">📍</span> {t.diemKhoiHanh ? `Đón tại ${t.diemKhoiHanh}` : 'Liên hệ để chọn điểm đón'}</li>
+          {t.ngayKhoiHanh && <li><span aria-hidden="true">📅</span> Khởi hành gần nhất {ngayNgan(t.ngayKhoiHanh)}</li>}
+        </ul>
         <div className="grow" />
-        <div className="row between">
+        <div className="tc-foot">
           <div>
             <div className="muted small">Giá từ</div>
             <div className="price">{t.giaTu ? money(t.giaTu) : 'Liên hệ'}</div>
           </div>
-          <Link className="btn sm" to={`/tour/${t.tourId}`}>Xem tour</Link>
+          <div className="tc-actions">
+            <Link className="btn secondary sm" to={`/tour/${t.tourId}`}>Chi tiết</Link>
+            <Link className="btn sm" to={`/tour/${t.tourId}#lich-khoi-hanh`}>Đặt tour</Link>
+          </div>
         </div>
       </div>
-    </div>
+    </article>
   )
 }
 

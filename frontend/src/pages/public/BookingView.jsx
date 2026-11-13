@@ -49,7 +49,7 @@ export default function BookingView() {
   const hkHieuLuc = d.hanhKhachs.filter((h) => h.trangThai === 'HIEU_LUC')
 
   return (
-    <div className="container section grid" style={{ gridTemplateColumns: '2fr 1fr' }}>
+    <div className="container section grid grid-main">
       <div>
         {loc.state?.moi && <div className="alert ok" style={{ marginBottom: 12 }}>Đặt tour thành công! Hãy lưu lại mã đơn <b>{d.maDon}</b> và số điện thoại để tra cứu.</div>}
         <BookingInfo d={d} />

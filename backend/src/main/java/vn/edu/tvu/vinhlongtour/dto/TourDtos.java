@@ -16,7 +16,8 @@ public final class TourDtos {
 
     public record TourCard(Integer tourId, String maTour, String tenTour, String thoiLuong, String anhDaiDien,
                            BigDecimal giaTu, List<String> loaiHinhs, List<String> khuVucs, Boolean noiBat,
-                           String trangThai, String moTaNgan) {}
+                           String trangThai, String moTaNgan,
+                           Integer soNgay, LocalDateTime ngayKhoiHanh, String diemKhoiHanh, Integer choConLai) {}
 
     public record ImageDto(Integer hinhAnhId, String duongDan, Boolean laAnhDaiDien, Integer thuTuHienThi) {}
 

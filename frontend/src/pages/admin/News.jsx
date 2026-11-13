@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import api, { errMsg, fmtDateTime } from '../../api'
 import { Alert, Loading, Modal, ImagePicker } from '../../components/ui.jsx'
+import { CHUYEN_MUC, tenChuyenMuc } from '../../content/chuyenMuc.js'
 
-const empty = { tieuDe: '', slug: '', tomTat: '', noiDung: '', anhBia: '', trangThai: 'NHAP' }
+const empty = { tieuDe: '', slug: '', tomTat: '', noiDung: '', anhBia: '', trangThai: 'NHAP', chuyenMuc: 'TIN_TUC' }
 
 export default function News() {
   const [list, setList] = useState(null)
@@ -26,12 +27,13 @@ export default function News() {
       <div className="admin-head"><h1>Tin tức</h1><button className="btn" onClick={() => setEdit({ ...empty })}>+ Viết bài</button></div>
       {!list ? <Loading /> : (
         <div className="table-wrap"><table>
-          <thead><tr><th>Tiêu đề</th><th>Trạng thái</th><th>Lượt xem</th><th>Ngày đăng</th><th></th></tr></thead>
+          <thead><tr><th>Tiêu đề</th><th>Chuyên mục</th><th>Trạng thái</th><th>Lượt xem</th><th>Ngày đăng</th><th></th></tr></thead>
           <tbody>{list.map((n) => (
             <tr key={n.tinTucId}><td>{n.tieuDe}<div className="muted small">/{n.slug}</div></td>
+              <td className="small">{tenChuyenMuc(n.chuyenMuc)}</td>
               <td><span className={`badge ${n.trangThai === 'XUAT_BAN' ? 'ok' : 'muted'}`}>{n.trangThai === 'XUAT_BAN' ? 'Xuất bản' : 'Nháp'}</span></td>
               <td>{n.luotXem}</td><td className="small">{fmtDateTime(n.ngayDang)}</td>
-              <td className="row"><button className="btn secondary sm" onClick={() => setEdit({ ...n, slug: n.slug, tomTat: n.tomTat || '', anhBia: n.anhBia || '' })}>Sửa</button><button className="btn link small" onClick={() => del(n)}>Xóa</button></td></tr>
+              <td className="row"><button className="btn secondary sm" onClick={() => setEdit({ ...n, slug: n.slug, tomTat: n.tomTat || '', anhBia: n.anhBia || '', chuyenMuc: n.chuyenMuc || 'TIN_TUC' })}>Sửa</button><button className="btn link small" onClick={() => del(n)}>Xóa</button></td></tr>
           ))}</tbody>
         </table></div>
       )}
@@ -42,6 +44,7 @@ export default function News() {
             <div className="field"><label>Slug (để trống = tự tạo)</label><input value={edit.slug} onChange={(e) => setEdit({ ...edit, slug: e.target.value })} /></div>
             <div className="field"><label>Trạng thái</label><select value={edit.trangThai} onChange={(e) => setEdit({ ...edit, trangThai: e.target.value })}><option value="NHAP">Nháp</option><option value="XUAT_BAN">Xuất bản</option></select></div>
           </div>
+          <div className="field"><label>Chuyên mục</label><select value={edit.chuyenMuc} onChange={(e) => setEdit({ ...edit, chuyenMuc: e.target.value })}>{CHUYEN_MUC.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}</select></div>
           <ImagePicker label="Ảnh bìa" value={edit.anhBia} onChange={(v) => setEdit({ ...edit, anhBia: v })} />
           <div className="field"><label>Tóm tắt</label><textarea value={edit.tomTat} onChange={(e) => setEdit({ ...edit, tomTat: e.target.value })} /></div>
           <div className="field"><label>Nội dung (HTML) *</label><textarea style={{ minHeight: 220 }} value={edit.noiDung} onChange={(e) => setEdit({ ...edit, noiDung: e.target.value })} /></div>

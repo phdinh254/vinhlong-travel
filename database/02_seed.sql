@@ -64,7 +64,15 @@ INSERT INTO CauHinhTrang (KhoaCauHinh, GiaTri) VALUES
  ('HOTLINE', '0000 000 000'),
  ('EMAIL', 'lienhe@example.com'),
  ('DIA_CHI', 'Vĩnh Long'),
- ('BAN_DO_NHUNG', '');
+ ('BAN_DO_NHUNG', ''),
+ ('GIO_LAM_VIEC', '7:30 – 21:00, tất cả các ngày'),
+ ('FACEBOOK', ''),
+ ('YOUTUBE', ''),
+ ('TIKTOK', ''),
+ ('INSTAGRAM', ''),
+ ('CS_DIEU_KHOAN', ''),
+ ('CS_BAO_MAT', ''),
+ ('CS_HUY_TOUR', '');
 
 /* Chính sách hủy chung (Q37) - MẪU */
 INSERT INTO ChinhSachHuy (ChinhSachHuyID, TourID, TenChinhSach, PhienBan, TuNgay, NoiDung)

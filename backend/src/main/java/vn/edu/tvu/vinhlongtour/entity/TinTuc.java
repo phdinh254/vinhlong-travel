@@ -27,6 +27,10 @@ public class TinTuc {
     @Column(name = "NoiDung", nullable = false, length = 100000)
     private String noiDung;
 
+    /** TIN_TUC | VAN_HOA | SU_KIEN | KINH_NGHIEM */
+    @Column(name = "ChuyenMuc", nullable = false, length = 20)
+    private String chuyenMuc = "TIN_TUC";
+
     @Column(name = "AnhBia", length = 500)
     private String anhBia;
 

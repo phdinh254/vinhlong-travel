@@ -26,16 +26,20 @@ public class PublicController {
     private final KhuVucRepository khuVucRepo;
     private final DichVuRepository dichVuRepo;
     private final DiemDenRepository diemDenRepo;
+    private final DiemDonRepository diemDonRepo;
+    private final PhuThuRepository phuThuRepo;
 
     @GetMapping("/tours")
     public Page<TourCard> tours(@RequestParam(required = false) String q,
                                 @RequestParam(required = false) Integer loaiHinhId,
                                 @RequestParam(required = false) Integer khuVucId,
                                 @RequestParam(required = false) Integer dichVuId,
+                                @RequestParam(required = false) Integer diemDenId,
+                                @RequestParam(required = false) Integer soNgay,
                                 @RequestParam(required = false) Boolean noiBat,
                                 @RequestParam(defaultValue = "0") int page,
                                 @RequestParam(defaultValue = "9") int size) {
-        return tourService.search(q, loaiHinhId, khuVucId, dichVuId, noiBat, "DANG_BAN", page, size);
+        return tourService.search(q, loaiHinhId, khuVucId, dichVuId, diemDenId, soNgay, noiBat, "DANG_BAN", page, size);
     }
 
     @GetMapping("/tours/{id}")
@@ -59,7 +63,12 @@ public class PublicController {
                 "loaiHinhs", loaiHinhRepo.findAll(Sort.by("tenLoaiHinh")).stream().map(l -> new Option(l.getLoaiHinhId(), l.getTenLoaiHinh())).toList(),
                 "khuVucs", khuVucRepo.findAll(Sort.by("khuVucId")).stream().map(k -> new Option(k.getKhuVucId(), k.getTenKhuVuc())).toList(),
                 "dichVus", dichVuRepo.findAll(Sort.by("tenDichVu")).stream().map(d -> new Option(d.getDichVuId(), d.getTenDichVu())).toList(),
-                "diemDens", diemDenRepo.findAll(Sort.by("tenDiemDen")));
+                "diemDens", diemDenRepo.findAll(Sort.by("tenDiemDen")),
+                // Trang Dịch vụ: điểm đón và phụ thu tùy chọn chung
+                "diemDons", diemDonRepo.findAll(Sort.by("diemDonId")).stream()
+                        .map(d -> Map.of("id", d.getDiemDonId(), "ten", d.getTenDiemDon(), "diaChi", d.getDiaChi() == null ? "" : d.getDiaChi())).toList(),
+                "phuThus", phuThuRepo.findChungDangHieuLuc().stream()
+                        .map(p -> Map.of("ten", p.getTenPhuThu(), "cachTinh", p.getCachTinh(), "donGia", p.getDonGia())).toList());
     }
 
     @GetMapping("/cau-hinh")
@@ -68,8 +77,9 @@ public class PublicController {
     }
 
     @GetMapping("/tin-tuc")
-    public Page<NewsDto> tinTuc(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "9") int size) {
-        return contentService.publishedNews(page, size);
+    public Page<NewsDto> tinTuc(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "9") int size,
+                                @RequestParam(required = false) String chuyenMuc) {
+        return contentService.publishedNews(page, size, chuyenMuc);
     }
 
     @GetMapping("/tin-tuc/{slug}")

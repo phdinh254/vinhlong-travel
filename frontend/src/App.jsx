@@ -6,6 +6,7 @@ import AdminLayout from './layouts/AdminLayout.jsx'
 import Home from './pages/public/Home.jsx'
 import About from './pages/public/About.jsx'
 import Services from './pages/public/Services.jsx'
+import Tours from './pages/public/Tours.jsx'
 import TourDetail from './pages/public/TourDetail.jsx'
 import Booking from './pages/public/Booking.jsx'
 import BookingView from './pages/public/BookingView.jsx'
@@ -14,6 +15,7 @@ import PaymentResult from './pages/public/PaymentResult.jsx'
 import News from './pages/public/News.jsx'
 import NewsDetail from './pages/public/NewsDetail.jsx'
 import Contact from './pages/public/Contact.jsx'
+import Policy from './pages/public/Policy.jsx'
 import Login from './pages/public/Login.jsx'
 import Register from './pages/public/Register.jsx'
 import Account from './pages/public/Account.jsx'
@@ -48,6 +50,7 @@ export default function App() {
       <Route element={<PublicLayout />}>
         <Route index element={<Home />} />
         <Route path="gioi-thieu" element={<About />} />
+        <Route path="tour" element={<Tours />} />
         <Route path="dich-vu" element={<Services />} />
         <Route path="tour/:id" element={<TourDetail />} />
         <Route path="dat-tour/:dotId" element={<Booking />} />
@@ -57,6 +60,7 @@ export default function App() {
         <Route path="tin-tuc" element={<News />} />
         <Route path="tin-tuc/:slug" element={<NewsDetail />} />
         <Route path="lien-he" element={<Contact />} />
+        <Route path="chinh-sach/:slug" element={<Policy />} />
         <Route path="dang-nhap" element={<Login />} />
         <Route path="dang-ky" element={<Register />} />
         <Route path="tai-khoan" element={<RequireLogin><Account /></RequireLogin>} />

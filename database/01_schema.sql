@@ -442,6 +442,7 @@ CREATE TABLE TinTuc (
     TieuDe       VARCHAR(300) NOT NULL,
     Slug         VARCHAR(320) NOT NULL UNIQUE,
     TomTat       VARCHAR(600) NULL,
+    ChuyenMuc    VARCHAR(20)  NOT NULL DEFAULT 'TIN_TUC',  -- TIN_TUC | VAN_HOA | SU_KIEN | KINH_NGHIEM
     NoiDung      LONGTEXT     NOT NULL,
     AnhBia       VARCHAR(500) NULL,
     TrangThai    VARCHAR(20)  NOT NULL DEFAULT 'NHAP',  -- NHAP | XUAT_BAN

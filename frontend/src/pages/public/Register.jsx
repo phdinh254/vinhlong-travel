@@ -1,16 +1,32 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { GoogleLogin } from '@react-oauth/google'
 import { useAuth } from '../../auth.jsx'
 import { errMsg } from '../../api'
-import { Alert } from '../../components/ui.jsx'
+import './login.css'
 
+const Eye = ({ off }) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+    <circle cx="12" cy="12" r="3" />
+    {off && <path d="M4 20 20 4" />}
+  </svg>
+)
+
+/** Đăng ký: cùng bố cục chia đôi với trang đăng nhập */
 export default function Register() {
-  const { register } = useAuth()
+  const { register, loginGoogle } = useAuth()
+  const [sp] = useSearchParams()
   const nav = useNavigate()
   const [f, setF] = useState({ hoTen: '', email: '', soDienThoai: '', matKhau: '', nhapLai: '' })
+  const [show, setShow] = useState(false)
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
+  const next = sp.get('next')
+  const loginLink = `/dang-nhap${next ? `?next=${encodeURIComponent(next)}` : ''}`
   const bind = (k) => ({ value: f[k], onChange: (e) => setF({ ...f, [k]: e.target.value }) })
+
+  const done = (u) => nav(next || (u?.vaiTro === 'ADMIN' ? '/admin' : '/'))
 
   const submit = async (e) => {
     e.preventDefault()
@@ -18,26 +34,77 @@ export default function Register() {
     setBusy(true); setErr('')
     try {
       const { nhapLai: _bo, ...body } = f
-      await register(body)
-      nav('/')
+      done(await register(body))
     } catch (x) { setErr(errMsg(x)) } finally { setBusy(false) }
   }
 
   return (
-    <div className="container section" style={{ maxWidth: 480 }}>
-      <form className="card" onSubmit={submit}>
-        <h2>Đăng ký tài khoản</h2>
-        <div className="field"><label>Họ tên *</label><input required {...bind('hoTen')} /></div>
-        <div className="field"><label>Email *</label><input type="email" required {...bind('email')} /></div>
-        <div className="field"><label>Số điện thoại</label><input {...bind('soDienThoai')} /></div>
-        <div className="grid grid-2">
-          <div className="field"><label>Mật khẩu *</label><input type="password" minLength={6} required {...bind('matKhau')} /></div>
-          <div className="field"><label>Nhập lại *</label><input type="password" required {...bind('nhapLai')} /></div>
+    <section className="lg-page">
+      <div className="lg-card">
+        <div className="lg-visual">
+          <img src="/images/kenh-rach.jpg" alt="Thuyền trên kênh rạch miền Tây" />
+          <div className="lg-visual-in">
+            <h2>Bắt đầu hành trình<br />miền Tây của bạn.</h2>
+            <Link className="lg-signup" to={loginLink}>
+              Đăng nhập
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M10 8.5 13.5 12 10 15.5M8 12h5.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </Link>
+          </div>
+          <a className="lg-credit" href="https://commons.wikimedia.org/wiki/File:Canal_in_Mekong_Delta_-_My_Tho_-_Vietnam_(15912635245).jpg" target="_blank" rel="noreferrer">
+            Ảnh: Esin Üstün · CC BY 2.0
+          </a>
         </div>
-        <Alert>{err}</Alert>
-        <button className="btn" style={{ width: '100%', marginTop: 8 }} disabled={busy}>Đăng ký</button>
-        <p className="small" style={{ textAlign: 'center', marginTop: 16 }}>Đã có tài khoản? <Link to="/dang-nhap">Đăng nhập</Link> (hỗ trợ đăng nhập bằng Google)</p>
-      </form>
-    </div>
+
+        <form className="lg-form lg-form--reg" onSubmit={submit}>
+          <h1>Tạo tài khoản<br />để đặt tour dễ hơn.</h1>
+
+          <label className="lg-field">
+            <span className="sr-only">Họ tên</span>
+            <input required autoComplete="name" placeholder="Họ và tên" {...bind('hoTen')} />
+          </label>
+
+          <label className="lg-field">
+            <span className="sr-only">Email</span>
+            <input type="email" required autoComplete="email" placeholder="Email" {...bind('email')} />
+          </label>
+
+          <label className="lg-field">
+            <span className="sr-only">Số điện thoại</span>
+            <input type="tel" autoComplete="tel" placeholder="Số điện thoại (không bắt buộc)" {...bind('soDienThoai')} />
+          </label>
+
+          <label className="lg-field">
+            <span className="sr-only">Mật khẩu</span>
+            <input type={show ? 'text' : 'password'} required minLength={6} autoComplete="new-password" placeholder="Mật khẩu (tối thiểu 6 ký tự)" {...bind('matKhau')} />
+            <button type="button" className="lg-eye" onClick={() => setShow(!show)} aria-label={show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}>
+              <Eye off={!show} />
+            </button>
+          </label>
+
+          <label className="lg-field">
+            <span className="sr-only">Nhập lại mật khẩu</span>
+            <input type={show ? 'text' : 'password'} required autoComplete="new-password" placeholder="Nhập lại mật khẩu" {...bind('nhapLai')} />
+          </label>
+
+          {err && <p className="lg-err" role="alert">{err}</p>}
+
+          <button className="lg-submit" disabled={busy}>{busy ? 'Đang tạo tài khoản…' : 'Đăng ký'}</button>
+
+          <div className="lg-or"><span>hoặc đăng ký nhanh với</span></div>
+
+          <div className="lg-social">
+            {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
+              <GoogleLogin
+                type="icon" shape="circle" size="large" locale="vi"
+                onSuccess={async (r) => { try { done(await loginGoogle(r.credential)) } catch (x) { setErr(errMsg(x)) } }}
+                onError={() => setErr('Đăng nhập Google thất bại')}
+              />
+            ) : <small>Chưa cấu hình VITE_GOOGLE_CLIENT_ID</small>}
+          </div>
+
+          <p className="lg-foot">Đã có tài khoản? <Link to={loginLink}>Đăng nhập</Link></p>
+        </form>
+      </div>
+    </section>
   )
 }

@@ -15,6 +15,11 @@ export default function TourDetail() {
     api.get(`/api/public/tours/${id}`).then((r) => setT(r.data)).catch((e) => setErr(errMsg(e)))
   }, [id])
 
+  // Nút "Đặt tour" ở thẻ tour dẫn tới #lich-khoi-hanh: cuộn tới khi dữ liệu đã tải
+  useEffect(() => {
+    if (t && window.location.hash === '#lich-khoi-hanh') document.getElementById('lich-khoi-hanh')?.scrollIntoView({ behavior: 'smooth' })
+  }, [t])
+
   const xemLichTrinhDot = async (d) => {
     setDotXem(d)
     setLichTrinhDot((await api.get(`/api/public/dots/${d.dotKhoiHanhId}/lich-trinh`)).data)
@@ -44,7 +49,7 @@ export default function TourDetail() {
         </div>
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: '2fr 1fr', marginTop: 24 }}>
+      <div className="grid grid-main" style={{ marginTop: 24 }}>
         <div className="stack">
           <div className="card"><h2>Giới thiệu tour</h2><div className="prose" dangerouslySetInnerHTML={{ __html: t.moTa || '' }} /></div>
           <div className="card"><h2>Lịch trình</h2><Itinerary ngays={t.lichTrinh} /></div>
@@ -67,8 +72,11 @@ export default function TourDetail() {
 
         <aside className="stack">
           <div className="card">
-            <h3>Lịch khởi hành</h3>
+            <h3 id="lich-khoi-hanh" style={{ scrollMarginTop: 90 }}>Lịch khởi hành</h3>
             {t.dots.length === 0 && <p className="muted">Hiện chưa có đợt khởi hành mở bán.</p>}
+            <p className="small" style={{ margin: '0 0 12px' }}>
+              Cần tư vấn hoặc muốn đi theo nhóm riêng? <Link to={`/lien-he?tourId=${t.tourId}`}>Hỏi về tour này →</Link>
+            </p>
             {t.dots.map((d) => (
               <div key={d.dotKhoiHanhId} className="box" style={{ marginBottom: 10 }}>
                 <div className="row between">

@@ -1,0 +1,114 @@
+/* ===== Liên hệ – Organic + Minimalism + Bento ===== */
+.ct h1, .ct h2 { font-family: var(--font-display); font-weight: 700; letter-spacing: 0; }
+.ct-eyebrow { display: block; margin-bottom: 8px; font-size: .76rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #8a5a2e; }
+.ct-ic { width: 26px; height: 26px; flex: none; }
+
+/* Mở đầu */
+.ct-mast { padding: 60px 0 0; }
+.ct-mast h1 { margin: 0 0 12px; font-size: clamp(2.1rem, 5vw, 3.4rem); line-height: 1.1; color: var(--forest); }
+.ct-lead { max-width: 600px; margin: 0; font-size: 1.1rem; line-height: 1.65; color: var(--muted); }
+.ct-quick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 32px; }
+.ct-q { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-radius: 20px 20px 20px 6px; background: var(--ivory);
+  border: 1px solid var(--line); color: var(--ink); transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+.ct-q:hover { text-decoration: none; border-color: var(--earth); transform: translateY(-3px); box-shadow: 0 14px 30px rgba(22, 48, 42, .1); }
+.ct-q .ct-ic { color: var(--earth); }
+.ct-q span { display: grid; min-width: 0; }
+.ct-q small { font-size: .78rem; color: var(--muted); }
+.ct-q b { font-weight: 600; color: var(--forest); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ct-q.primary { background: var(--forest); border-color: var(--forest); color: #fff; }
+.ct-q.primary small { color: #b9cdb8; }
+.ct-q.primary b { color: #fff; font-size: 1.1rem; }
+.ct-q.primary .ct-ic { color: #E9C9A0; }
+
+/* Khu chính: form + cột phụ */
+.ct-main { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 24px; align-items: start; margin-top: 40px; scroll-margin-top: 90px; }
+.ct-form-card { padding: 32px; border-radius: 28px 28px 28px 8px; background: var(--ivory); border: 1px solid var(--line); }
+.ct-form-card h2 { margin: 0; font-size: 1.8rem; color: var(--forest); }
+.ct-sub { margin: 6px 0 22px; color: var(--muted); }
+
+.ct-types { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 22px; padding: 0; border: 0; }
+.ct-types legend { padding: 0; margin-bottom: 10px; font-weight: 600; font-size: .9rem; }
+.ct-type { position: relative; display: grid; gap: 2px; margin: 0; padding: 14px; border-radius: 16px; border: 1.5px solid var(--line);
+  background: var(--white); cursor: pointer; font-weight: 400; transition: border-color .2s ease, background .2s ease; }
+.ct-type input { position: absolute; opacity: 0; pointer-events: none; }
+.ct-type b { font-size: .92rem; color: var(--forest); line-height: 1.3; }
+.ct-type small { font-size: .78rem; color: var(--muted); }
+.ct-type:hover { border-color: var(--leaf); }
+.ct-type.on { border-color: var(--forest); background: var(--green-soft); box-shadow: inset 0 0 0 1px var(--forest); }
+.ct-type:has(input:focus-visible) { outline: 2px solid var(--earth); outline-offset: 2px; }
+
+.ct-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+.ct-grid .span2 { grid-column: span 2; }
+.ct-grid input, .ct-grid select, .ct-grid textarea { border-radius: 12px; background: var(--white); }
+.ct-guests { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; align-content: start; }
+.ct-label { grid-column: span 2; display: block; font-weight: 600; font-size: .9rem; margin-bottom: 4px; }
+.ct-guests label { font-weight: 400; font-size: .8rem; color: var(--muted); margin: 0; }
+.ct-guests input { margin-top: 2px; }
+.ct-count { display: block; text-align: right; color: var(--muted); font-size: .78rem; margin-top: 4px; }
+.ct-submit { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
+.ct-submit .btn { border-radius: 999px; padding: 12px 28px; font-size: 1rem; }
+.ct-submit small { color: var(--muted); }
+
+/* Gửi thành công */
+.ct-done { text-align: center; padding: 16px 8px; }
+.ct-done-ic { display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--forest); color: #E9C9A0; margin-bottom: 14px; }
+.ct-done-ic svg { width: 30px; height: 30px; }
+.ct-done h2 { font-size: 1.7rem; }
+.ct-done > p { max-width: 460px; margin: 10px auto 22px; color: var(--muted); line-height: 1.65; }
+.ct-next { max-width: 440px; margin: 0 auto 24px; padding: 0; list-style: none; counter-reset: s; text-align: left; display: grid; gap: 10px; }
+.ct-next li { counter-increment: s; display: grid; grid-template-columns: 32px 1fr; gap: 10px; align-items: start; line-height: 1.5; }
+.ct-next li::before { content: counter(s); display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--green-soft); color: var(--forest); font-weight: 700; font-size: .85rem; }
+.ct-done-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.ct-done-actions .btn { border-radius: 999px; padding: 10px 22px; }
+
+/* Cột phụ bento */
+.ct-side { display: grid; gap: 14px; position: sticky; top: 88px; }
+.ct-tile { display: grid; gap: 4px; padding: 22px 24px; border-radius: 22px; background: var(--ivory); border: 1px solid var(--line); color: var(--ink);
+  transition: border-color .25s ease, transform .25s ease; }
+a.ct-tile:hover { text-decoration: none; border-color: var(--earth); transform: translateY(-3px); }
+.ct-tile small { font-size: .8rem; color: var(--muted); }
+.ct-tile b { font-family: var(--font-display); font-size: 1.35rem; color: var(--forest); }
+.ct-tile span { font-size: .9rem; font-weight: 600; color: #8a5a2e; }
+.ct-tile.book { border-radius: 60px 22px 22px 22px; background: radial-gradient(ellipse at 90% 0%, #2f5a47 0%, #16302a 75%); border-color: transparent; color: #fff; }
+.ct-tile.book small { color: #b9cdb8; }
+.ct-tile.book b { color: #fff; }
+.ct-tile.book span { color: #E9C9A0; }
+.ct-tile.info { gap: 14px; border-radius: 22px 22px 60px 22px; }
+.ct-tile.info p { display: flex; gap: 12px; margin: 0; }
+.ct-tile.info p .ct-ic { width: 22px; height: 22px; color: var(--earth); margin-top: 2px; }
+.ct-tile.info p span { display: grid; font-weight: 400; color: var(--ink); font-size: .95rem; }
+.ct-tile.info p b { font-family: var(--font-sans); font-size: .8rem; font-weight: 600; color: var(--muted); }
+.ct-tile.info iframe { width: 100%; height: 200px; border: 0; border-radius: 16px; }
+.ct-map-link { font-weight: 600; color: var(--forest); }
+
+/* Hỏi nhanh */
+.ct-faq { padding-top: 72px; }
+.ct-faq h2 { margin: 0 0 18px; font-size: clamp(1.5rem, 3vw, 2rem); color: var(--forest); }
+.ct-faq-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
+.ct-faq details { border-radius: 18px; background: var(--ivory); border: 1px solid var(--line); }
+.ct-faq details[open] { border-color: var(--earth); }
+.ct-faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 12px; padding: 16px 20px; font-weight: 600; color: var(--forest); }
+.ct-faq summary::-webkit-details-marker { display: none; }
+.ct-faq summary::after { content: '+'; flex: none; font-size: 1.2rem; color: var(--earth); transition: transform .25s ease; }
+.ct-faq details[open] summary::after { transform: rotate(45deg); }
+.ct-faq summary:focus-visible { outline: 2px solid var(--earth); outline-offset: 2px; border-radius: 18px; }
+.ct-faq details p { margin: 0; padding: 0 20px 18px; color: var(--muted); line-height: 1.65; }
+
+@media (prefers-reduced-motion: reduce) { .ct-q, .ct-tile, .ct-type { transition: none; } .ct-q:hover, a.ct-tile:hover { transform: none; } }
+@media (max-width: 1000px) {
+  .ct-quick { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ct-main { grid-template-columns: minmax(0, 1fr); }
+  .ct-side { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ct-tile.info { grid-column: span 2; }
+  .ct-types { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .ct-mast { padding-top: 40px; }
+  .ct-quick { grid-template-columns: minmax(0, 1fr); }
+  .ct-form-card { padding: 22px 18px; }
+  .ct-grid { grid-template-columns: minmax(0, 1fr); }
+  .ct-grid .span2 { grid-column: auto; }
+  .ct-side { grid-template-columns: minmax(0, 1fr); }
+  .ct-tile.info { grid-column: auto; }
+  .ct-faq-list { grid-template-columns: minmax(0, 1fr); }
+}

@@ -31,7 +31,7 @@ export default function Account() {
         <button className={tab === 'don' ? 'active' : ''} onClick={() => setTab('don')}>Đơn đặt tour</button>
         <button className={tab === 'ho-so' ? 'active' : ''} onClick={() => setTab('ho-so')}>Hồ sơ</button>
       </div>
-      {tab === 'don' && (!dons ? <Loading /> : dons.length === 0 ? <p className="muted">Bạn chưa có đơn nào. <Link to="/dich-vu">Xem tour</Link></p> : (
+      {tab === 'don' && (!dons ? <Loading /> : dons.length === 0 ? <p className="muted">Bạn chưa có đơn nào. <Link to="/tour">Xem tour</Link></p> : (
         <div className="table-wrap"><table>
           <thead><tr><th>Mã đơn</th><th>Tour</th><th>Khởi hành</th><th>Số khách</th><th className="right">Tổng tiền</th><th className="right">Đã trả</th><th>Trạng thái</th></tr></thead>
           <tbody>{dons.map((d) => (

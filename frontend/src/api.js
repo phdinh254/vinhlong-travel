@@ -33,7 +33,8 @@ export const fmtDate = (v) => (v ? new Date(v).toLocaleDateString('vi-VN') : '�
 export const fmtDateTime = (v) =>
   v ? new Date(v).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : '—'
 
-export const imgUrl = (p) => (!p ? null : p.startsWith('http') ? p : API_URL + p)
+/** Ảnh tĩnh của frontend (/images/...) giữ nguyên; ảnh upload lấy từ backend */
+export const imgUrl = (p) => (!p ? null : p.startsWith('http') || p.startsWith('/images/') ? p : API_URL + p)
 
 export const uploadImage = async (file) => {
   const fd = new FormData()

@@ -32,10 +32,12 @@ public final class AdminDtos {
 
     public record NewsSaveRequest(@NotBlank @Size(max = 300) String tieuDe, @Size(max = 320) String slug,
                                   @Size(max = 600) String tomTat, @NotBlank String noiDung, String anhBia,
-                                  @NotBlank @Pattern(regexp = "NHAP|XUAT_BAN") String trangThai) {}
+                                  @NotBlank @Pattern(regexp = "NHAP|XUAT_BAN") String trangThai,
+                                  @Pattern(regexp = "TIN_TUC|VAN_HOA|SU_KIEN|KINH_NGHIEM") String chuyenMuc) {}
 
     public record NewsDto(Integer tinTucId, String tieuDe, String slug, String tomTat, String noiDung, String anhBia,
-                          String trangThai, Integer luotXem, LocalDateTime ngayDang, LocalDateTime ngayTao) {}
+                          String trangThai, Integer luotXem, LocalDateTime ngayDang, LocalDateTime ngayTao,
+                          String chuyenMuc) {}
 
     public record DiemDenInput(@NotBlank String tenDiemDen, Integer khuVucId, String diaChi, BigDecimal viDo,
                                BigDecimal kinhDo, String moTa, String hinhAnh) {}
