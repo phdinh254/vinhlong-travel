@@ -30,4 +30,6 @@ logs/
 *.sql.gz
 *.bak
 graphify-out/
-.claude/
+.claude/settings.local.json
+__pycache__/
+*.pyc
