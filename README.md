@@ -72,6 +72,13 @@ cd backend
 
 Cần Docker Desktop đang chạy: test tích hợp tự bật một PostgreSQL tạm trong Docker và xóa đi sau khi xong.
 
+### Kiểm thử API bằng Postman
+
+Bộ request có sẵn kiểm tra tự động: `backend/postman/VinhLongTour.postman_collection.json`. Mỗi giai đoạn thêm một thư mục request mới.
+
+- **Trong Postman:** File → Import → chọn file trên → bấm chuột phải vào collection → **Run collection**. Backend phải đang chạy.
+- **Bằng dòng lệnh** (không cần mở Postman): `cd backend && npx newman run postman/VinhLongTour.postman_collection.json`
+
 ## Quy ước viết code
 
 - Tên class, method, biến, bảng, API bằng **tiếng Anh**.
