@@ -239,7 +239,7 @@ Lý do chọn: được thiết kế đúng cho "hướng dẫn viên du lịch 
 | 5 | Thanh toán | VNPay (tạo link, return, IPN — chống ghi trùng, kiểm chữ ký, số tiền), xác nhận thủ công kèm ảnh | Test chữ ký VNPay; IPN gửi 2 lần chỉ ghi 1 lần; trả thừa → cờ hoàn tiền |
 | 6 | Hủy / hoàn / chuyển đợt | Hủy toàn bộ/từng người, phí phạt theo chính sách đã chốt, admin duyệt, hoàn tiền nhiều lần, chuyển đợt tính lại giá | Test: phí phạt theo mốc ngày; duyệt hủy đơn đã hủy bị từ chối; chuyển đợt trả chỗ cũ, giữ chỗ mới |
 | 7 | Gợi ý lịch trình | ILS mục 5, bữa trưa, ngân sách, lưu lịch trình, gợi ý tour giống nhất | Test ví dụ tính tay (5.4) ra đúng từng số; các test luật; bảng so sánh ILS với tham lam |
-| 8 | Nội dung & quản trị | Tin tức, cấu hình trang, liên hệ, upload ảnh, dashboard (doanh thu, đơn theo trạng thái, đơn cần hoàn tiền), quản lý người dùng | Upload chỉ nhận ảnh; dashboard đếm đúng |
+| 8 | Nội dung & quản trị | Tin tức, cấu hình trang, liên hệ, upload ảnh, dashboard (doanh thu, đơn theo trạng thái, đơn cần hoàn tiền), quản lý người dùng | Upload chỉ nhận ảnh; dashboard đếm đúng. *Ghi chú khi làm:* quản lý người dùng (tìm, khóa/mở) đã có từ giai đoạn 1 nên không làm thêm; doanh thu = tiền thanh toán thành công − tiền đã hoàn, tính theo ngày tiền vào/ra; nhận diện ảnh bằng byte đầu file, không tin đuôi file |
 | 9 | Bàn giao | Dữ liệu demo (chỉ bật ở profile `dev`), `docs/API_CHANGES.md`, sơ đồ lớp + ERD (draw.io), README hoàn chỉnh | Máy mới clone về chạy được bằng 3 lệnh trong README |
 
 ## 8. Không làm (trừ khi bạn yêu cầu)

@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/contact-messages"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "Trần Văn L",
+      "message": "Tư vấn giúp tôi tour 2 ngày"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 400', () => pm.response.to.have.status(400));
+      pm.test('code = CONTACT_REQUIRED', () => pm.expect(pm.response.json().code).to.eql('CONTACT_REQUIRED'));
+    language: text/javascript
+order: 11000

@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/contact-messages/{{contactId}}/status"
+method: PATCH
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "status": "HANDLED"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('Đã xử lý, ghi tên admin', () => { const m = pm.response.json(); pm.expect(m.status).to.eql('HANDLED'); pm.expect(m.handledBy).to.be.a('string'); });
+    language: text/javascript
+order: 14000

@@ -16,5 +16,7 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
     List<Tour> findByStatus(TourStatus status);
 
+    long countByStatus(TourStatus status);
+
     boolean existsByCodeAndIdNot(String code, Long id);
 }

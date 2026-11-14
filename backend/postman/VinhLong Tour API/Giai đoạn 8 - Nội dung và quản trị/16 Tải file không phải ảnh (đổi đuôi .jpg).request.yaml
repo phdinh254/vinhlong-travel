@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/uploads"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+body:
+  type: formdata
+  content:
+    - type: file
+      key: file
+      src: backend/postman/fixtures/khong-phai-anh.jpg
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 400', () => pm.response.to.have.status(400));
+      pm.test('code = NOT_AN_IMAGE', () => pm.expect(pm.response.json().code).to.eql('NOT_AN_IMAGE'));
+    language: text/javascript
+order: 17000

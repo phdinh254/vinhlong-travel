@@ -2,6 +2,7 @@ package vn.edu.tvu.vinhlongtour.common;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 
@@ -10,7 +11,10 @@ import java.util.List;
  * phần lớn đọc từ biến môi trường để không phải ghi bí mật vào mã nguồn.
  */
 @ConfigurationProperties("app")
-public record AppProperties(Jwt jwt, Admin admin, Google google, Cors cors, Booking booking, VnPay vnpay) {
+public record AppProperties(Jwt jwt, Admin admin, Google google, Cors cors, Booking booking, VnPay vnpay, Upload upload) {
+
+    /** Thư mục lưu ảnh admin tải lên; ảnh được phục vụ ở đường dẫn {@code /uploads/<tên file>}. */
+    public record Upload(Path dir) {}
 
     /**
      * Cấu hình cổng VNPay. {@code processOnReturn}: ghi nhận kết quả ngay khi khách quay về trang kết quả

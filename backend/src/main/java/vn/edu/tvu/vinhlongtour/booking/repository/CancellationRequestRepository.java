@@ -17,6 +17,8 @@ public interface CancellationRequestRepository extends JpaRepository<Cancellatio
 
     Page<CancellationRequest> findByStatus(CancellationRequestStatus status, Pageable pageable);
 
+    long countByStatus(CancellationRequestStatus status);
+
     /** Chỉ lấy mã đơn để khóa đơn trước, rồi mới đọc yêu cầu qua đơn. */
     @Query("select r.booking.id from CancellationRequest r where r.id = :id")
     Optional<Long> findBookingId(@Param("id") Long id);
