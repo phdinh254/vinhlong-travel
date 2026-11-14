@@ -11,6 +11,11 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import vn.edu.tvu.vinhlongtour.booking.domain.Booking;
 import vn.edu.tvu.vinhlongtour.booking.domain.BookingStatus;
+import vn.edu.tvu.vinhlongtour.booking.domain.CancellationRequest;
+import vn.edu.tvu.vinhlongtour.booking.domain.CancellationRequestStatus;
+import vn.edu.tvu.vinhlongtour.booking.domain.CancellationScope;
+import vn.edu.tvu.vinhlongtour.booking.domain.DepartureTransfer;
+import vn.edu.tvu.vinhlongtour.booking.domain.Refund;
 import vn.edu.tvu.vinhlongtour.booking.domain.Gender;
 import vn.edu.tvu.vinhlongtour.booking.domain.Passenger;
 import vn.edu.tvu.vinhlongtour.booking.domain.PassengerStatus;
@@ -102,9 +107,12 @@ public final class BookingDtos {
                                 TourRef tour, DepartureRef departure, ContactInfo contact, String note,
                                 List<PassengerResponse> passengers, List<SurchargeLine> surcharges,
                                 long ticketTotal, long pickupTotal, long surchargeTotal, long totalAmount,
-                                long paidAmount, long remainingAmount, long minimumFirstPayment, long refundDue, int seats,
+                                long paidAmount, long remainingAmount, long minimumFirstPayment, long refundDue,
+                                long cancellationFee, int seats,
                                 LocalDateTime holdUntil, LocalDateTime createdAt,
-                                CancellationPolicyResponse cancellationPolicy, List<PaymentResponse> payments, List<HistoryEntry> history) {
+                                CancellationPolicyResponse cancellationPolicy, List<PaymentResponse> payments,
+                                List<CancellationRequestResponse> cancellationRequests, List<RefundResponse> refunds,
+                                List<TransferResponse> transfers, List<HistoryEntry> history) {
 
         /** @param minimumFirstPayment số tiền tối thiểu cần trả tiếp: tiền cọc nếu chưa trả gì, còn lại nếu đã trả */
         public static BookingDetail from(Booking b, long minimumFirstPayment) {
@@ -118,10 +126,13 @@ public final class BookingDtos {
                     b.getSurcharges().stream().map(s -> new SurchargeLine(s.getSurcharge().getId(), s.getName(), s.getMethod(),
                             s.getQuantity(), s.getUnitPrice(), s.getAmount())).toList(),
                     b.getTicketTotal(), b.getPickupTotal(), b.getSurchargeTotal(), b.getTotalAmount(),
-                    b.getPaidAmount(), b.remainingAmount(), minimumFirstPayment, b.refundDue(), b.getSeats(),
+                    b.getPaidAmount(), b.remainingAmount(), minimumFirstPayment, b.refundDue(), b.getCancellationFee(), b.getSeats(),
                     b.getHoldUntil(), b.getCreatedAt(),
                     b.getCancellationPolicy() == null ? null : CancellationPolicyResponse.from(b.getCancellationPolicy()),
                     b.getPayments().stream().map(PaymentResponse::from).toList(),
+                    b.getCancellationRequests().stream().map(CancellationRequestResponse::from).toList(),
+                    b.getRefunds().stream().map(RefundResponse::from).toList(),
+                    b.getTransfers().stream().map(TransferResponse::from).toList(),
                     b.getHistory().stream().map(h -> new HistoryEntry(h.getFromStatus(), h.getToStatus(), h.getChangedAt(),
                             h.getChangedBy() == null ? null : h.getChangedBy().getFullName(), h.getReason())).toList());
         }
@@ -153,6 +164,39 @@ public final class BookingDtos {
             return new PaymentResponse(p.getId(), p.getAmount(), p.getMethod(), p.getStatus(), p.getReference(),
                     p.getTransactionNo(), p.getBankCode(), p.getPaidAt(),
                     p.getConfirmedBy() == null ? null : p.getConfirmedBy().getFullName(), p.getProofUrl(), p.getNote(), p.getCreatedAt());
+        }
+    }
+
+    public record CancellationRequestResponse(Long id, CancellationScope scope, CancellationRequestStatus status, String reason,
+                                              List<String> passengerNames, int penaltyPercent, long penaltyAmount,
+                                              long estimatedRefund, LocalDateTime requestedAt, LocalDateTime decidedAt,
+                                              String decidedBy, String decisionNote) {
+
+        static CancellationRequestResponse from(CancellationRequest r) {
+            return new CancellationRequestResponse(r.getId(), r.getScope(), r.getStatus(), r.getReason(),
+                    r.getPassengers().stream().map(Passenger::getFullName).toList(), r.getPenaltyPercent(), r.getPenaltyAmount(),
+                    r.getEstimatedRefund(), r.getRequestedAt(), r.getDecidedAt(),
+                    r.getDecidedBy() == null ? null : r.getDecidedBy().getFullName(), r.getDecisionNote());
+        }
+    }
+
+    public record RefundResponse(Long id, long amount, PaymentMethod method, String transactionNo, String proofUrl, String note,
+                                 LocalDateTime refundedAt, String refundedBy, Long cancellationRequestId) {
+
+        static RefundResponse from(Refund r) {
+            return new RefundResponse(r.getId(), r.getAmount(), r.getMethod(), r.getTransactionNo(), r.getProofUrl(), r.getNote(),
+                    r.getRefundedAt(), r.getRefundedBy().getFullName(),
+                    r.getCancellationRequest() == null ? null : r.getCancellationRequest().getId());
+        }
+    }
+
+    /** {@code priceDifference} dương: khách phải trả thêm; âm: được hoàn bớt. */
+    public record TransferResponse(String fromDepartureCode, String toDepartureCode, long priceDifference, String reason,
+                                   LocalDateTime transferredAt, String transferredBy) {
+
+        static TransferResponse from(DepartureTransfer t) {
+            return new TransferResponse(t.getFromDeparture().getCode(), t.getToDeparture().getCode(), t.getPriceDifference(),
+                    t.getReason(), t.getTransferredAt(), t.getTransferredBy().getFullName());
         }
     }
 

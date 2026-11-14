@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/tours/{{cxTourId}}/departures"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "departureAt": "{{cxToAt}}",
+      "returnAt": "{{cxToReturn}}",
+      "bookingDeadline": "{{cxToDeadline}}",
+      "capacity": 10,
+      "prices": {{cxPricesJson}}
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('cxToId', pm.response.json().id);
+    language: text/javascript
+order: 5000

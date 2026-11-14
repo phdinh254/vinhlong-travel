@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/bookings/{{cxCode}}/cancellation-requests"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "scope": "FULL",
+      "phone": "0909111222"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 409', () => pm.response.to.have.status(409));
+      pm.test('code = CANCELLATION_PENDING', () => pm.expect(pm.response.json().code).to.eql('CANCELLATION_PENDING'));
+    language: text/javascript
+order: 10000

@@ -21,9 +21,13 @@ import vn.edu.tvu.vinhlongtour.catalog.domain.CancellationPolicy;
 import vn.edu.tvu.vinhlongtour.common.ApiException;
 import vn.edu.tvu.vinhlongtour.tour.domain.Departure;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Đơn đặt tour: một đợt khởi hành, người liên hệ (khách vãng lai hoặc có tài khoản), danh sách hành khách,
@@ -33,6 +37,9 @@ import java.util.List;
 @Entity
 @Table(name = "bookings")
 public class Booking {
+
+    /** Đơn phải luôn có ít nhất một hành khách từ tuổi này (tính đến ngày khởi hành). */
+    public static final int ADULT_AGE = 18;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -113,6 +120,18 @@ public class Booking {
     @OrderBy("id")
     private List<Payment> payments = new ArrayList<>();
 
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
+    @OrderBy("id")
+    private List<CancellationRequest> cancellationRequests = new ArrayList<>();
+
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
+    @OrderBy("id")
+    private List<Refund> refunds = new ArrayList<>();
+
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
+    @OrderBy("id")
+    private List<DepartureTransfer> transfers = new ArrayList<>();
+
     protected Booking() {
     }
 
@@ -162,6 +181,208 @@ public class Booking {
         if (target != BookingStatus.PENDING_PAYMENT) {
             this.holdUntil = null; // hạn giữ chỗ chỉ có nghĩa khi đang chờ thanh toán
         }
+        if (!target.holdsSeats()) {
+            // Đơn đã hủy/hết hạn bằng cách khác: yêu cầu hủy đang chờ không còn ý nghĩa, đóng lại để không ai
+            // duyệt nó nữa (bản cũ duyệt yêu cầu của đơn đã hủy làm trả chỗ hai lần)
+            cancellationRequests.stream().filter(CancellationRequest::isPending)
+                    .forEach(r -> r.decide(CancellationRequestStatus.REJECTED, actor, "Đơn đã chuyển sang " + target + ", yêu cầu tự đóng", at));
+        }
+    }
+
+    // ---------- Hủy tour ----------
+
+    /** Phần trăm phạt nếu hủy vào ngày {@code today}, theo chính sách đã chốt lúc đặt. Không có chính sách: không phạt. */
+    public int penaltyPercentAt(LocalDate today) {
+        if (cancellationPolicy == null) {
+            return 0;
+        }
+        return cancellationPolicy.penaltyPercentFor(ChronoUnit.DAYS.between(today, departure.getDepartureAt().toLocalDate()));
+    }
+
+    /**
+     * Khách gửi yêu cầu hủy cả đơn hoặc một số hành khách. Tính và chốt luôn phí phạt, số tiền dự kiến hoàn.
+     * Hủy hết hành khách thì coi như hủy cả đơn; hủy một phần thì phải còn ít nhất một người từ {@value #ADULT_AGE} tuổi.
+     */
+    public CancellationRequest requestCancellation(CancellationScope scope, Set<Long> passengerIds, String reason,
+                                                   Account actor, LocalDateTime now) {
+        if (!status.holdsSeats()) {
+            throw ApiException.conflict("BOOKING_NOT_ACTIVE", "Đơn ở trạng thái " + status + " không thể hủy");
+        }
+        if (!departure.getDepartureAt().isAfter(now)) {
+            throw ApiException.conflict("ALREADY_DEPARTED", "Tour đã khởi hành, không thể gửi yêu cầu hủy");
+        }
+        if (cancellationRequests.stream().anyMatch(CancellationRequest::isPending)) {
+            throw ApiException.conflict("CANCELLATION_PENDING", "Đơn đang có một yêu cầu hủy chờ duyệt");
+        }
+        List<Passenger> active = activePassengers();
+        List<Passenger> leaving = active;
+        if (scope == CancellationScope.PARTIAL) {
+            Set<Long> ids = passengerIds == null ? Set.of() : passengerIds;
+            leaving = active.stream().filter(p -> ids.contains(p.getId())).toList();
+            if (leaving.isEmpty() || leaving.size() != ids.size()) {
+                throw ApiException.badRequest("INVALID_PASSENGERS", "Chọn hành khách cần hủy trong số hành khách đang còn của đơn");
+            }
+            if (leaving.size() == active.size()) {
+                scope = CancellationScope.FULL;
+            } else {
+                LocalDate departureDate = departure.getDepartureAt().toLocalDate();
+                List<Passenger> staying = active.stream().filter(p -> !ids.contains(p.getId())).toList();
+                if (staying.stream().noneMatch(p -> Period.between(p.getBirthDate(), departureDate).getYears() >= ADULT_AGE)) {
+                    throw ApiException.badRequest("ADULT_REQUIRED", "Sau khi hủy, đơn phải còn ít nhất một hành khách từ " + ADULT_AGE + " tuổi");
+                }
+            }
+        }
+        int percent = penaltyPercentAt(now.toLocalDate());
+        long value = scope == CancellationScope.FULL ? serviceValue()
+                : leaving.stream().mapToLong(p -> p.getPrice() + p.getPickupFee()).sum();
+        long penalty = percentOf(value, percent);
+        long keepAfter = scope == CancellationScope.FULL ? cancellationFee + penalty : totalAmount - value + penalty;
+        CancellationRequest request = new CancellationRequest(this, scope, leaving, reason, percent, penalty,
+                Math.max(0, paidAmount - keepAfter), actor, now);
+        cancellationRequests.add(request);
+        note(actor, "Gửi yêu cầu hủy " + (scope == CancellationScope.FULL ? "cả đơn" : leaving.size() + " hành khách")
+                + ", phạt " + percent + "% = " + penalty + "đ", now);
+        return request;
+    }
+
+    /**
+     * Duyệt yêu cầu hủy: hủy hành khách/cả đơn, cộng phí phạt vào số tiền giữ lại, tính lại tổng tiền và trạng thái.
+     *
+     * @return số chỗ cần trả lại cho đợt khởi hành (nơi gọi trả chỗ khi đã khóa đợt)
+     */
+    public int approveCancellation(CancellationRequest request, Account admin, String decisionNote, LocalDateTime now) {
+        ensurePendingRequestOfThisBooking(request);
+        if (!status.holdsSeats()) {
+            throw ApiException.conflict("BOOKING_NOT_ACTIVE", "Đơn ở trạng thái " + status + ", không thể duyệt hủy");
+        }
+        request.decide(CancellationRequestStatus.APPROVED, admin, decisionNote, now);
+        cancellationFee += request.getPenaltyAmount();
+        if (request.getScope() == CancellationScope.FULL) {
+            int released = seats;
+            activePassengers().forEach(Passenger::cancel);
+            moveTo(BookingStatus.CANCELLED, admin, "Duyệt hủy cả đơn, phí phạt " + request.getPenaltyAmount() + "đ", now);
+            return released;
+        }
+        int released = request.getPassengers().stream().mapToInt(p -> p.getPassengerType().getSeats()).sum();
+        request.getPassengers().forEach(Passenger::cancel);
+        seats -= released;
+        recalculateTotals();
+        settleStatus(admin, "Duyệt hủy " + request.getPassengers().size() + " hành khách, phí phạt " + request.getPenaltyAmount() + "đ", now);
+        return released;
+    }
+
+    public void rejectCancellation(CancellationRequest request, Account admin, String decisionNote, LocalDateTime now) {
+        ensurePendingRequestOfThisBooking(request);
+        request.decide(CancellationRequestStatus.REJECTED, admin, decisionNote, now);
+        note(admin, "Từ chối yêu cầu hủy" + (decisionNote == null ? "" : ": " + decisionNote), now);
+    }
+
+    private void ensurePendingRequestOfThisBooking(CancellationRequest request) {
+        if (!cancellationRequests.contains(request)) {
+            throw ApiException.badRequest("REQUEST_NOT_OF_BOOKING", "Yêu cầu hủy không thuộc đơn này");
+        }
+        if (!request.isPending()) {
+            throw ApiException.conflict("REQUEST_ALREADY_DECIDED", "Yêu cầu hủy đã được xử lý (" + request.getStatus() + ")");
+        }
+    }
+
+    // ---------- Hoàn tiền ----------
+
+    /** Admin hoàn tiền cho khách; không hoàn quá số tiền cần hoàn ({@link #refundDue()}). */
+    public Refund refund(long amount, PaymentMethod method, String transactionNo, String proofUrl, String refundNote,
+                         CancellationRequest request, Account admin, LocalDateTime now) {
+        if (method == PaymentMethod.VNPAY) {
+            throw ApiException.badRequest("INVALID_METHOD", "Hoàn tiền bằng chuyển khoản hoặc tiền mặt");
+        }
+        if (amount > refundDue()) {
+            throw ApiException.badRequest("REFUND_EXCEEDS_DUE", "Số tiền hoàn vượt quá số cần hoàn (" + refundDue() + "đ)");
+        }
+        if (request != null && !cancellationRequests.contains(request)) {
+            throw ApiException.badRequest("REQUEST_NOT_OF_BOOKING", "Yêu cầu hủy không thuộc đơn này");
+        }
+        paidAmount -= amount;
+        Refund refund = new Refund(this, request, amount, method, transactionNo, proofUrl, refundNote, admin, now);
+        refunds.add(refund);
+        note(admin, "Hoàn " + amount + "đ (" + method + (transactionNo == null ? "" : ", mã " + transactionNo) + ")", now);
+        return refund;
+    }
+
+    // ---------- Chuyển đợt ----------
+
+    /**
+     * Chuyển đơn sang đợt khác (nơi gọi đã trả chỗ ở đợt cũ, giữ chỗ ở đợt mới). Giá từng hành khách và phụ thu
+     * được tính lại theo đợt mới; trạng thái tính lại theo số tiền đã thu.
+     *
+     * @param newDetails giá mới của các hành khách đang còn, cùng thứ tự với {@link #activePassengers()}
+     */
+    public DepartureTransfer transferTo(Departure target, List<Passenger.Details> newDetails, List<BookingSurcharge> newSurcharges,
+                                        Account admin, String reason, LocalDateTime now) {
+        ensureTransferable(target);
+        List<Passenger> active = activePassengers();
+        if (newDetails.size() != active.size()) {
+            throw new IllegalArgumentException("Số hành khách tính lại giá không khớp đơn");
+        }
+        long oldTotal = totalAmount;
+        Departure from = departure;
+        for (int i = 0; i < active.size(); i++) {
+            active.get(i).reprice(newDetails.get(i));
+        }
+        surcharges.clear();
+        surcharges.addAll(newSurcharges);
+        departure = target;
+        seats = active.stream().mapToInt(p -> p.getPassengerType().getSeats()).sum();
+        recalculateTotals();
+        DepartureTransfer transfer = new DepartureTransfer(this, from, target, totalAmount - oldTotal, reason, admin, now);
+        transfers.add(transfer);
+        settleStatus(admin, "Chuyển từ đợt " + from.getCode() + " sang " + target.getCode() + ", chênh lệch " + (totalAmount - oldTotal) + "đ", now);
+        return transfer;
+    }
+
+    /** Kiểm tra trước khi tính giá mới: đơn còn hiệu lực, không có yêu cầu hủy đang chờ, đợt mới khác đợt cũ và cùng tour. */
+    public void ensureTransferable(Departure target) {
+        if (!status.holdsSeats()) {
+            throw ApiException.conflict("BOOKING_NOT_ACTIVE", "Chỉ chuyển đợt được với đơn đang hiệu lực");
+        }
+        if (cancellationRequests.stream().anyMatch(CancellationRequest::isPending)) {
+            throw ApiException.conflict("CANCELLATION_PENDING", "Đơn đang có yêu cầu hủy chờ duyệt, xử lý yêu cầu đó trước");
+        }
+        if (target.getId().equals(departure.getId())) {
+            throw ApiException.badRequest("SAME_DEPARTURE", "Đợt mới trùng đợt hiện tại");
+        }
+        if (!target.getTour().getId().equals(departure.getTour().getId())) {
+            throw ApiException.badRequest("DIFFERENT_TOUR", "Chỉ chuyển sang đợt khác của cùng tour");
+        }
+    }
+
+    public List<Passenger> activePassengers() {
+        return passengers.stream().filter(p -> p.getStatus() == PassengerStatus.ACTIVE).toList();
+    }
+
+    /** Giá trị dịch vụ hiện tại của đơn (vé + phí đón + phụ thu), chưa tính phí phạt đã giữ lại. */
+    private long serviceValue() {
+        return ticketTotal + pickupTotal + surchargeTotal;
+    }
+
+    private void recalculateTotals() {
+        ticketTotal = activePassengers().stream().mapToLong(Passenger::getPrice).sum();
+        pickupTotal = activePassengers().stream().mapToLong(Passenger::getPickupFee).sum();
+        surchargeTotal = surcharges.stream().mapToLong(BookingSurcharge::getAmount).sum();
+        totalAmount = serviceValue() + cancellationFee;
+    }
+
+    /** Đưa trạng thái về đúng với số tiền đã thu sau khi tổng tiền thay đổi (hủy một phần, chuyển đợt). */
+    private void settleStatus(Account actor, String reason, LocalDateTime now) {
+        BookingStatus target = paidAmount >= totalAmount ? BookingStatus.PAID
+                : paidAmount > 0 ? BookingStatus.DEPOSITED : BookingStatus.PENDING_PAYMENT;
+        if (target != status && status.canMoveTo(target)) {
+            moveTo(target, actor, reason, now);
+        } else {
+            note(actor, reason, now);
+        }
+    }
+
+    private static long percentOf(long value, int percent) {
+        return (value * percent + 50) / 100; // làm tròn tới đồng
     }
 
     // ---------- Thanh toán ----------
@@ -351,6 +572,18 @@ public class Booking {
 
     public List<Payment> getPayments() {
         return List.copyOf(payments);
+    }
+
+    public List<CancellationRequest> getCancellationRequests() {
+        return List.copyOf(cancellationRequests);
+    }
+
+    public List<Refund> getRefunds() {
+        return List.copyOf(refunds);
+    }
+
+    public List<DepartureTransfer> getTransfers() {
+        return List.copyOf(transfers);
     }
 
     public long getCancellationFee() {

@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/passenger-types"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const prices = [1000000, 500000, 0];
+      pm.collectionVariables.set('cxPricesJson', JSON.stringify(pm.response.json().map((t, i) => ({ passengerTypeId: t.id, price: prices[i] ?? 0 }))));
+    language: text/javascript
+order: 3000

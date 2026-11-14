@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/cancellation-requests?status=PENDING&size=100"
+method: GET
+headers:
+  Authorization: Bearer {{adminToken}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const r = pm.response.json().items.find(x => x.id == pm.collectionVariables.get('cxRequestId'));
+      pm.test('Có yêu cầu vừa gửi, kèm mã đơn', () => pm.expect(r.bookingCode).to.eql(pm.collectionVariables.get('cxCode')));
+    language: text/javascript
+order: 11000

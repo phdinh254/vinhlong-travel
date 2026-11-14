@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/bookings/{{cxBookingId}}/transfer"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "departureId": {{cxToId}},
+      "reason": "Khách xin đổi ngày"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const b = pm.response.json();
+      pm.test('Đơn đã sang đợt B, cùng giá nên không chênh lệch', () => { pm.expect(b.departure.id).to.eql(Number(pm.collectionVariables.get('cxToId'))); pm.expect(b.transfers[0].priceDifference).to.eql(0); pm.expect(b.status).to.eql('PAID'); });
+    language: text/javascript
+order: 16000

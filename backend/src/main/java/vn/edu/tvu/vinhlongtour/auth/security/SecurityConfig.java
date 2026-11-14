@@ -40,7 +40,7 @@ public class SecurityConfig {
     private static final String[] PUBLIC_POST = {"/api/v1/bookings/quote"};
 
     /** API ghi khách vãng lai gọi được; nếu có token hợp lệ thì biết là khách nào (đơn gắn với tài khoản). */
-    private static final String[] OPTIONAL_LOGIN_POST = {"/api/v1/bookings", "/api/v1/payments/vnpay"};
+    private static final String[] OPTIONAL_LOGIN_POST = {"/api/v1/bookings", "/api/v1/payments/vnpay", "/api/v1/bookings/*/cancellation-requests"};
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, AccountJwtConverter jwtConverter,
