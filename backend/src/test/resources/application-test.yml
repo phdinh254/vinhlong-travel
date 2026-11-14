@@ -1,0 +1,9 @@
+# Cấu hình chỉ dùng khi chạy test (@ActiveProfiles("test"))
+app:
+  jwt:
+    secret: test-secret-chi-dung-cho-kiem-thu-0123456789
+  admin:
+    email: admin@test.vn
+    password: Admin@12345
+  google:
+    client-id: test-google-client-id

@@ -90,7 +90,7 @@ Sẽ vẽ **sơ đồ lớp** và **ERD** bằng draw.io để đưa vào báo c
 
 | Tiếng Việt (bản cũ) | Tên mới | Ghi chú |
 |---|---|---|
-| TaiKhoan, VaiTro | `Account`, `Role` | |
+| TaiKhoan, VaiTro | `Account`, `Role` | `Role` là enum (ADMIN, CUSTOMER) lưu trong cột `accounts.role`, không cần bảng riêng vì chỉ có 2 vai trò cố định |
 | KhachHang | `Customer` | Có thể không có tài khoản (khách vãng lai) |
 | KhuVuc, LoaiHinh, DichVu | `Region`, `TourCategory`, `Amenity` | |
 | DiemDen | `Destination` | **Thêm**: tọa độ, thời gian tham quan, giờ mở/đóng cửa, chi phí ước tính/người, độ nổi bật, thẻ sở thích |

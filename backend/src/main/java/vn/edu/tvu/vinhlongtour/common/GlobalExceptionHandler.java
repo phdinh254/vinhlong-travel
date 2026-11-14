@@ -2,6 +2,7 @@ package vn.edu.tvu.vinhlongtour.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -30,6 +31,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiError> handleApi(ApiException ex) {
         return ResponseEntity.status(ex.getStatus()).body(new ApiError(ex.getCode(), ex.getMessage()));
+    }
+
+    // Hai request cùng ghi một giá trị phải duy nhất (ví dụ cùng email) cùng lúc: CSDL chặn, báo xung đột thay vì lỗi 500
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleConflict(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError("DATA_CONFLICT", "Dữ liệu bị trùng hoặc vừa bị thay đổi, vui lòng thử lại"));
     }
 
     @ExceptionHandler(Exception.class)

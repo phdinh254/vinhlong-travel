@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -13,10 +14,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Kiểm tra cả ứng dụng khởi động được trên PostgreSQL thật: Flyway chạy, Hibernate kiểm tra
- * cấu trúc bảng, health báo UP, Swagger có tài liệu API, đường dẫn sai trả lỗi đúng dạng chung.
+ * cấu trúc bảng, health báo UP, Swagger có tài liệu API, API chưa đăng nhập trả lỗi đúng dạng chung.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 class VinhLongTourApplicationTests {
 
@@ -38,9 +40,10 @@ class VinhLongTourApplicationTests {
     }
 
     @Test
-    void unknownPathReturnsCommonErrorShape() throws Exception {
+    void apiRequiresLoginByDefaultWithCommonErrorShape() throws Exception {
         mvc.perform(get("/api/v1/khong-ton-tai"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.fields").exists());
     }
 }

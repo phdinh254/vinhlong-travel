@@ -1,6 +1,9 @@
 $kind: collection
 description: |-
   Bộ request kiểm thử backend VinhLong Tour. Mỗi giai đoạn thêm một thư mục mới.
-  Import vào Postman: File → Import → chọn file này. Đổi biến `baseUrl` nếu backend không chạy ở cổng 8081.
+  Chạy cả collection theo thứ tự (Run). Biến `adminPassword` phải khớp ADMIN_PASSWORD đã đặt khi chạy backend.
+  Đổi biến `baseUrl` nếu backend không chạy ở cổng 8081.
 variables:
   baseUrl: http://localhost:8081
+  adminEmail: admin@vinhlongtour.vn
+  adminPassword: ""

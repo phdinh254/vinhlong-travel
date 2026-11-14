@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{customerEmail}}",
+      "password": "MatKhau@123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const body = pm.response.json();
+      pm.test('Có token và thời điểm hết hạn', () => {
+        pm.expect(body.token).to.be.a('string');
+        pm.expect(body.expiresAt).to.be.a('string');
+      });
+      pm.collectionVariables.set('customerToken', body.token);
+    language: text/javascript
+order: 4000
