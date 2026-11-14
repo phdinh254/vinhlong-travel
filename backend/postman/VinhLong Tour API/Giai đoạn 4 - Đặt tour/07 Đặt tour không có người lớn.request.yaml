@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/bookings"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "departureId": {{bookDepartureId}},
+      "contactName": "Bé đi một mình",
+      "contactPhone": "0901234567",
+      "passengers": [ { "fullName": "Nguyễn Văn Bé", "birthDate": "{{childBirthDate}}" } ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 400', () => pm.response.to.have.status(400));
+      pm.test('code = ADULT_REQUIRED', () => pm.expect(pm.response.json().code).to.eql('ADULT_REQUIRED'));
+    language: text/javascript
+order: 8000

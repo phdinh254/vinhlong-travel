@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/bookings/quote"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "departureId": {{bookDepartureId}},
+      "passengers": [
+        { "fullName": "Nguyễn Văn A", "birthDate": "1990-01-01" },
+        { "fullName": "Nguyễn Văn Bé", "birthDate": "{{childBirthDate}}" }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const q = pm.response.json();
+      pm.test('Trẻ em tính theo tuổi ngày đi, có tiền cọc tối thiểu', () => {
+        pm.expect(q.passengers[1].passengerTypeName).to.eql('Trẻ em');
+        pm.expect(q.seats).to.eql(2);
+        pm.expect(q.minimumFirstPayment).to.be.above(0).and.at.most(q.totalAmount);
+      });
+    language: text/javascript
+order: 4000

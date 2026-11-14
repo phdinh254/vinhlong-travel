@@ -28,3 +28,6 @@ app:
     client-id: ${GOOGLE_CLIENT_ID:}
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+  booking:
+    hold: 30m                # Giữ chỗ 30 phút; quá hạn mà chưa trả đồng nào thì tự trả chỗ
+    deposit-percent: 30      # Đặt cọc tối thiểu 30% tổng tiền, làm tròn lên hàng nghìn

@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/bookings/{{guestBookingId}}/status"
+method: PATCH
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "status": "COMPLETED"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 409', () => pm.response.to.have.status(409));
+      pm.test('code = INVALID_STATUS_CHANGE', () => pm.expect(pm.response.json().code).to.eql('INVALID_STATUS_CHANGE'));
+    language: text/javascript
+order: 14000

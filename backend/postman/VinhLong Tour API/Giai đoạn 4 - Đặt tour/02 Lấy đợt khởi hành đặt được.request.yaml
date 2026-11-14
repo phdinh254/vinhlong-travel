@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/tours/{{bookTourId}}/departures"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const d = pm.response.json().find(x => x.bookable && x.seatsLeft >= 4);
+      pm.test('Có đợt còn ít nhất 4 chỗ', () => pm.expect(d).to.exist);
+      pm.collectionVariables.set('bookDepartureId', d.id);
+      pm.collectionVariables.set('seatsBefore', d.seatsLeft);
+    language: text/javascript
+order: 3000

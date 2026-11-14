@@ -91,7 +91,7 @@ Sẽ vẽ **sơ đồ lớp** và **ERD** bằng draw.io để đưa vào báo c
 | Tiếng Việt (bản cũ) | Tên mới | Ghi chú |
 |---|---|---|
 | TaiKhoan, VaiTro | `Account`, `Role` | `Role` là enum (ADMIN, CUSTOMER) lưu trong cột `accounts.role`, không cần bảng riêng vì chỉ có 2 vai trò cố định |
-| KhachHang | `Customer` | Có thể không có tài khoản (khách vãng lai) |
+| KhachHang | *(bỏ)* | Không cần bảng riêng: đơn lưu thẳng người liên hệ (tên, SĐT, email) và tài khoản nếu khách đã đăng nhập; khách vãng lai tra cứu bằng mã đơn + SĐT |
 | KhuVuc, LoaiHinh, DichVu | `Region`, `TourCategory`, `Amenity` | Cùng kế thừa `NamedItem`; dùng chung `NamedItemService<T>` và một controller `/api/v1/{regions,tour-categories,amenities}` |
 | DiemDen | `Destination` | **Thêm**: tọa độ, thời gian tham quan, giờ mở/đóng cửa, chi phí ước tính/người, độ nổi bật, thẻ sở thích |
 | DiemDon | `PickupPoint` | |
@@ -101,7 +101,7 @@ Sẽ vẽ **sơ đồ lớp** và **ERD** bằng draw.io để đưa vào báo c
 | Tour, HinhAnhTour | `Tour`, `TourImage` | Luôn đúng 1 ảnh đại diện |
 | NgayLichTrinh, HoatDongLichTrinh | `Itinerary`, `ItineraryDay`, `ItineraryActivity` | `Itinerary` là bảng riêng: tour giữ lịch trình mẫu, đợt giữ bản sao tạo bằng `Itinerary.copy()` (mẫu Prototype) |
 | DotKhoiHanh, BangGiaDot | `Departure`, `DeparturePrice` | `Departure` có cột `version` |
-| DonDatTour, HanhKhach | `Booking`, `Passenger` | Giá chốt trên từng hành khách lúc đặt |
+| DonDatTour, HanhKhach | `Booking`, `Passenger` | Giá chốt trên từng hành khách lúc đặt; `BookingStatus` là enum tự khai báo bước chuyển hợp lệ |
 | ChiTietPhuThuDon, LichSuTrangThaiDon | `BookingSurcharge`, `BookingStatusHistory` | |
 | ThanhToan, HoanTien | `Payment`, `Refund` | Mã tham chiếu thanh toán là duy nhất |
 | YeuCauHuy, ChiTietHuyHanhKhach | `CancellationRequest`, `CancelledPassenger` | |

@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{bookerEmail}}",
+      "password": "MatKhau@123",
+      "fullName": "Trần Thị B"
+    }
+scripts:
+  - type: beforeRequest
+    code: pm.collectionVariables.set('bookerEmail', 'dat-tour-' + Date.now() + '@test.vn');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('bookerToken', pm.response.json().token);
+    language: text/javascript
+order: 9000

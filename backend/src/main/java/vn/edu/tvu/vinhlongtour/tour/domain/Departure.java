@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Một đợt khởi hành của tour: ngày giờ đi/về, hạn nhận khách, sức chứa và số chỗ đã đặt,
@@ -159,6 +160,30 @@ public class Departure {
         if (bookedSeats > 0) {
             throw ApiException.conflict("DEPARTURE_HAS_BOOKINGS", "Đợt đã có " + bookedSeats + " chỗ được đặt, không thể hủy hoặc xóa");
         }
+    }
+
+    /** Giữ chỗ cho một đơn. Phải gọi khi đã khóa dòng đợt này trong CSDL (xem DepartureRepository.findByIdForUpdate). */
+    public void reserveSeats(int seats) {
+        if (seats > seatsLeft()) {
+            throw ApiException.conflict("SEAT_NOT_ENOUGH", "Đợt khởi hành chỉ còn " + seatsLeft() + " chỗ");
+        }
+        this.bookedSeats += seats;
+    }
+
+    /** Trả chỗ khi đơn hết hạn hoặc bị hủy. Phải gọi khi đã khóa dòng đợt này. */
+    public void releaseSeats(int seats) {
+        if (seats > bookedSeats) {
+            throw new IllegalStateException("Trả " + seats + " chỗ nhưng đợt " + code + " chỉ có " + bookedSeats + " chỗ đã đặt");
+        }
+        this.bookedSeats -= seats;
+    }
+
+    public Optional<DeparturePrice> priceFor(PassengerType type) {
+        return prices.stream().filter(p -> p.getPassengerType().getId().equals(type.getId())).findFirst();
+    }
+
+    public Optional<DeparturePickup> pickupAt(Long pickupPointId) {
+        return pickups.stream().filter(p -> p.getPickupPoint().getId().equals(pickupPointId)).findFirst();
     }
 
     public int seatsLeft() {

@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/bookings"
+method: POST
+headers:
+  Authorization: Bearer {{bookerToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "departureId": {{bookDepartureId}},
+      "contactName": "Trần Thị B",
+      "contactPhone": "0911222333",
+      "passengers": [
+        { "fullName": "Trần Thị B", "birthDate": "1992-03-03" },
+        { "fullName": "Trần Văn C", "birthDate": "1991-04-04" }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('memberBookingCode', pm.response.json().code);
+    language: text/javascript
+order: 10000
