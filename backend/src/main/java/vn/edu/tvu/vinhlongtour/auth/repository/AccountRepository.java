@@ -20,6 +20,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     boolean existsByEmail(String email);
 
+    Optional<Account> findFirstByRoleOrderByIdAsc(Role role);
+
     boolean existsByRole(Role role);
 
     Page<Account> findByEmailContainingIgnoreCaseOrFullNameContainingIgnoreCase(String email, String fullName, Pageable pageable);

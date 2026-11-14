@@ -57,9 +57,9 @@ public final class TourDtos {
 
     public record ImagesRequest(@NotNull @Size(max = 20) @Valid List<ImageLine> images) {}
 
-    /** Ảnh là đường dẫn http(s) hoặc ảnh đã tải lên máy chủ ({@code /uploads/...}). */
+    /** Ảnh là đường dẫn http(s), ảnh đã tải lên máy chủ ({@code /uploads/...}) hoặc ảnh có sẵn trong frontend ({@code /images/...}). */
     public record ImageLine(
-            @NotBlank @Size(max = 500) @Pattern(regexp = "^(https?://|/uploads/).+", message = "đường dẫn ảnh không hợp lệ") String url,
+            @NotBlank @Size(max = 500) @Pattern(regexp = "^(https?://|/uploads/|/images/).+", message = "đường dẫn ảnh không hợp lệ") String url,
             @Size(max = 200) String caption,
             Boolean cover) {}
 
