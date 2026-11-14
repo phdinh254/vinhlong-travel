@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/bookings/{{cxCode}}/cancellation-requests"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "scope": "PARTIAL",
+      "passengerIds": [{{cxSecondPassengerId}}],
+      "reason": "Người thứ hai bận việc",
+      "phone": "0909111222"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      const b = pm.response.json(); const r = b.cancellationRequests.at(-1);
+      pm.test('Đơn đã thu tiền nên chờ admin duyệt', () => { pm.expect(b.status).to.eql('PAID'); pm.expect(r.status).to.eql('PENDING'); pm.expect(r.scope).to.eql('PARTIAL'); });
+      pm.test('Tiền hoàn dự kiến = giá vé - phí phạt', () => pm.expect(r.estimatedRefund).to.eql(1000000 - r.penaltyAmount));
+      pm.collectionVariables.set('cxRequestId', r.id); pm.collectionVariables.set('cxEstimatedRefund', r.estimatedRefund);
+    language: text/javascript
+order: 9000

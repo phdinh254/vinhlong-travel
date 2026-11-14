@@ -86,6 +86,19 @@ public class Passenger {
         this.pickupFee = details.pickupFee();
     }
 
+    void cancel() {
+        this.status = PassengerStatus.CANCELLED;
+    }
+
+    /** Tính lại giá khi chuyển đợt: loại khách (theo tuổi ngày đi mới), giá vé và điểm đón theo đợt mới. */
+    void reprice(Details d) {
+        this.passengerType = d.passengerType();
+        this.price = d.price();
+        this.pickupPoint = d.pickupPoint();
+        this.pickupTime = d.pickupTime();
+        this.pickupFee = d.pickupFee();
+    }
+
     /** Dữ liệu một hành khách khi tạo đơn (đã tính giá). */
     public record Details(String fullName, LocalDate birthDate, Gender gender, String phone, String idNumber,
                           PassengerType passengerType, long price, PickupPoint pickupPoint, LocalTime pickupTime, long pickupFee) {}

@@ -2,6 +2,7 @@ package vn.edu.tvu.vinhlongtour.booking.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import vn.edu.tvu.vinhlongtour.booking.domain.Booking;
 import vn.edu.tvu.vinhlongtour.booking.domain.BookingSurcharge;
 import vn.edu.tvu.vinhlongtour.booking.domain.Passenger;
 import vn.edu.tvu.vinhlongtour.booking.web.BookingDtos.PassengerInput;
@@ -33,7 +34,7 @@ import java.util.Set;
 @Component
 public class PriceCalculator {
 
-    public static final int ADULT_AGE = 18;
+    public static final int ADULT_AGE = Booking.ADULT_AGE;
 
     private final int depositPercent;
 

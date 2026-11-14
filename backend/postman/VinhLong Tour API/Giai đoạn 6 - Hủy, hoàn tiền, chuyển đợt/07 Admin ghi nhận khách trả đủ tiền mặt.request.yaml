@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/bookings/{{cxBookingId}}/payments"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "amount": {{cxTotal}},
+      "method": "CASH"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      pm.test('Đơn đã trả đủ', () => pm.expect(pm.response.json().status).to.eql('PAID'));
+    language: text/javascript
+order: 8000

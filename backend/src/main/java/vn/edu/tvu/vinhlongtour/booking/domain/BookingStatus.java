@@ -9,8 +9,9 @@ import java.util.Set;
  * <pre>
  * PENDING_PAYMENT ─┬─> DEPOSITED ─┬─> PAID ──> COMPLETED
  *                  ├──────────────┼─> PAID
- *                  ├─> EXPIRED ───┴─> (PENDING_PAYMENT khi nhận tiền trễ, giai đoạn 5)
+ *                  ├─> EXPIRED ───┴─> (PENDING_PAYMENT khi nhận tiền trễ)
  *                  └─> CANCELLED <── DEPOSITED, PAID
+ * PAID ──> DEPOSITED khi chuyển sang đợt đắt hơn, tiền đã thu không còn đủ.
  * </pre>
  */
 public enum BookingStatus {
@@ -32,7 +33,8 @@ public enum BookingStatus {
         return switch (this) {
             case PENDING_PAYMENT -> EnumSet.of(DEPOSITED, PAID, CANCELLED, EXPIRED);
             case DEPOSITED -> EnumSet.of(PAID, CANCELLED);
-            case PAID -> EnumSet.of(COMPLETED, CANCELLED);
+            // PAID -> DEPOSITED: chuyển sang đợt đắt hơn nên tiền đã thu không còn đủ
+            case PAID -> EnumSet.of(COMPLETED, CANCELLED, DEPOSITED);
             case EXPIRED -> EnumSet.of(PENDING_PAYMENT);
             case COMPLETED, CANCELLED -> EnumSet.noneOf(BookingStatus.class);
         };

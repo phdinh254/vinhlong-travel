@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/bookings/{{cxCode}}/cancellation-requests"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "scope": "FULL",
+      "phone": "0900000000"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 404', () => pm.response.to.have.status(404));
+      pm.test('code = BOOKING_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('BOOKING_NOT_FOUND'));
+    language: text/javascript
+order: 7000

@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/bookings"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "departureId": {{cxToId}},
+      "contactName": "Lý Thị M",
+      "contactPhone": "0909333444",
+      "passengers": [ { "fullName": "Lý Thị M", "birthDate": "1995-05-05" } ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('cxCode2', pm.response.json().code);
+    language: text/javascript
+order: 21000

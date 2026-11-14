@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/cancellation-requests/{{cxRequestId2}}/reject"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "note": "Đã quá hạn hủy theo thỏa thuận"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const b = pm.response.json();
+      pm.test('Đơn vẫn còn hiệu lực, yêu cầu bị từ chối', () => { pm.expect(b.status).to.eql('PAID'); pm.expect(b.cancellationRequests.at(-1).status).to.eql('REJECTED'); });
+    language: text/javascript
+order: 20000

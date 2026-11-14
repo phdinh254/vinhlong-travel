@@ -1,0 +1,31 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/tours/{{cxTourId}}/departures"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "departureAt": "{{cxFromAt}}",
+      "returnAt": "{{cxFromReturn}}",
+      "bookingDeadline": "{{cxFromDeadline}}",
+      "capacity": 10,
+      "prices": {{cxPricesJson}}
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      // Giờ đi lấy theo phút hiện tại để chạy lại nhiều lần không trùng đợt; +7 giờ cho ra giờ Việt Nam
+      const fmt = ms => new Date(ms + 7 * 36e5).toISOString().slice(0, 19);
+      const a = Math.floor((Date.now() + 45 * 864e5) / 6e4) * 6e4, b = a + 7 * 864e5;
+      pm.collectionVariables.set('cxFromAt', fmt(a)); pm.collectionVariables.set('cxFromReturn', fmt(a + 34 * 36e5)); pm.collectionVariables.set('cxFromDeadline', fmt(a - 864e5));
+      pm.collectionVariables.set('cxToAt', fmt(b)); pm.collectionVariables.set('cxToReturn', fmt(b + 34 * 36e5)); pm.collectionVariables.set('cxToDeadline', fmt(b - 864e5));
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('cxFromId', pm.response.json().id);
+    language: text/javascript
+order: 4000

@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/cancellation-requests/{{cxRequestId}}/approve"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 409', () => pm.response.to.have.status(409));
+      pm.test('code = REQUEST_ALREADY_DECIDED', () => pm.expect(pm.response.json().code).to.eql('REQUEST_ALREADY_DECIDED'));
+    language: text/javascript
+order: 13000

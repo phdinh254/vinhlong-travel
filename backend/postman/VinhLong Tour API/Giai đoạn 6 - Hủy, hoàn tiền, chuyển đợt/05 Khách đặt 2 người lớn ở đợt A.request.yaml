@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/bookings"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "departureId": {{cxFromId}},
+      "contactName": "Ngô Văn H",
+      "contactPhone": "0909111222",
+      "passengers": [
+        { "fullName": "Ngô Văn H", "birthDate": "1980-03-03" },
+        { "fullName": "Trần Thị K", "birthDate": "1982-04-04" }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      const b = pm.response.json();
+      pm.collectionVariables.set('cxCode', b.code); pm.collectionVariables.set('cxBookingId', b.id);
+      pm.collectionVariables.set('cxTotal', b.totalAmount); pm.collectionVariables.set('cxSecondPassengerId', b.passengers[1].id);
+    language: text/javascript
+order: 6000
