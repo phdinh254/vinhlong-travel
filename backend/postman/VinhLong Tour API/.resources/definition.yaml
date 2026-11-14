@@ -1,0 +1,6 @@
+$kind: collection
+description: |-
+  Bộ request kiểm thử backend VinhLong Tour. Mỗi giai đoạn thêm một thư mục mới.
+  Import vào Postman: File → Import → chọn file này. Đổi biến `baseUrl` nếu backend không chạy ở cổng 8081.
+variables:
+  baseUrl: http://localhost:8081

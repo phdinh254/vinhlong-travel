@@ -1,0 +1,7 @@
+# Use this workspace to collaborate
+workspace:
+  id: 4497d9b0-b4b2-48ac-80e2-d483dcaec2ec
+
+localResources:
+  collections:
+    - ../backend/postman/VinhLong Tour API
