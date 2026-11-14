@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/itineraries/suggest"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "startDate": "{{pastDate}}",
+      "days": 1,
+      "pace": "RELAXED",
+      "lodging": "BEN_TRE_CENTER",
+      "adults": 1
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 400', () => pm.response.to.have.status(400));
+      pm.test('code = INVALID_START_DATE', () => pm.expect(pm.response.json().code).to.eql('INVALID_START_DATE'));
+    language: text/javascript
+order: 5000

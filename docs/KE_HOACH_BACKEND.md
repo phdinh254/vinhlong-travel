@@ -74,7 +74,7 @@ Mỗi gói có `domain` (entity + enum), `repository`, `service`, `web` (control
 | **Enum có hành vi** | `BookingStatus` khai báo bước chuyển hợp lệ (`PENDING_PAYMENT → DEPOSITED → PAID → COMPLETED`, …). Chuyển sai → lỗi ngay. |
 | **Đa hình (phụ thu)** | `SurchargeMethod` = `PER_PERSON`, `PER_BOOKING`, `PER_UNIT`, mỗi giá trị tự cài `quantity(...)`. |
 | **Thanh toán** | *Đã đổi khi làm giai đoạn 5:* không tạo `interface PaymentGateway` vì chỉ có VNPay là cổng thật (xác nhận thủ công do admin làm, không phải cổng). Interface chỉ một cài đặt là thừa; khi thêm cổng thứ hai (MoMo...) thì tách interface từ `VnPayGateway`. `Payment` thuộc đơn, mọi khoản tiền vào đi qua `Booking` khi đã khóa dòng đơn. |
-| **Đa hình (gợi ý lịch trình)** | `interface ScoringCriterion` với nhiều cài đặt (khớp sở thích, độ nổi bật, khu vực ưu tiên). `interface TravelTimeEstimator` để sau này thay cách tính đường đi mà không sửa thuật toán. |
+| **Đa hình (gợi ý lịch trình)** | `interface ScoringCriterion` với 3 cài đặt: `InterestMatch` (khớp sở thích), `Popularity` (độ nổi bật), `PreferredRegion` (khu vực ưu tiên). *Đã đổi khi làm giai đoạn 7:* không tạo `interface TravelTimeEstimator`; thuật toán nhận thẳng **bảng thời gian di chuyển**, nên test dùng được bảng của ví dụ tính tay, sau này đổi cách tính đường đi chỉ cần dựng bảng khác. |
 | **Value object** | `Money` (bọc `BigDecimal`, luôn làm tròn tới đồng), `AgeRange`, `GeoPoint`, `TimeWindow`. |
 
 Sẽ vẽ **sơ đồ lớp** và **ERD** bằng draw.io để đưa vào báo cáo.
@@ -146,16 +146,18 @@ Lý do chọn: được thiết kế đúng cho "hướng dẫn viên du lịch 
 |---|---|
 | Điểm hấp dẫn `S_i` | Tổng có trọng số của các `ScoringCriterion`: khớp sở thích khách chọn (thẻ của điểm đến), độ nổi bật (admin chấm 1–5), thuộc khu vực ưu tiên. Quy về số nguyên 1–100 |
 | Thời gian tham quan `T_i` | Cột `visitMinutes` của điểm đến |
-| Khung giờ `[O_i, C_i]` | Giờ mở/đóng cửa của điểm đến; đóng cửa tính là giờ cuối còn vào được |
+| Khung giờ `[O_i, C_i]` | Giờ mở/đóng cửa của điểm đến. *Đã đổi khi làm giai đoạn 7:* phải **tham quan xong trước giờ đóng cửa** (`C_i` = giờ đóng − thời gian tham quan), thực tế hơn "vào trước giờ đóng" |
 | Thời gian di chuyển `c_ij` | Khoảng cách đường chim bay (Haversine) × 1,3 (hệ số đường vòng) ÷ 30 km/h. Đây là ước tính; có ghi chú `shortcut:` trong code, sau này có thể thay bằng bảng thời gian do admin nhập (ví dụ chỗ phải qua phà) qua `TravelTimeEstimator` |
 | Quỹ giờ mỗi ngày | Nhịp đi: thong thả 8:00–16:00, vừa 7:30–17:30, dày 7:00–19:00 |
 | Nơi xuất phát mỗi ngày | **Khách chọn nơi lưu trú**: chọn nhanh từ danh sách (trung tâm Vĩnh Long cũ, Bến Tre cũ, Trà Vinh cũ, cù lao An Bình) hoặc gửi tọa độ tự chọn trên bản đồ. Mỗi ngày đi và về nơi này |
-| Bữa trưa | Thêm 1 "điểm ăn trưa" ảo mỗi ngày: 60 phút, khung giờ 11:00–13:30, đặt ở vị trí đang đứng, buộc phải có |
+| Bữa trưa | Thêm 1 "điểm ăn trưa" ảo mỗi ngày: 60 phút, bắt đầu trong 11:00–13:30, ăn tại chỗ vừa tham quan, buộc phải có. Tiền ăn ước tính 80.000 đ/người (chưa có danh mục quán ăn) |
 | Ngân sách | Thêm điều kiện khi chèn: tổng chi phí ước tính (vé + ăn) × số người không vượt ngân sách |
 
 **Kết quả trả về**: từng ngày → danh sách điểm với giờ đến, giờ bắt đầu, giờ rời, thời gian di chuyển; tổng chi phí ước tính; và **3 tour đang bán giống nhất** (so trùng điểm đến bằng hệ số Jaccard = số điểm chung ÷ số điểm hợp lại), kèm đợt khởi hành còn chỗ để khách bấm đặt.
 
-**API**: `POST /api/v1/itineraries/suggest`, `POST /api/v1/itineraries` (lưu), `GET /api/v1/me/itineraries`.
+**API**: `GET /api/v1/itineraries/lodging-presets`, `POST /api/v1/itineraries/suggest` (không cần đăng nhập), `POST /api/v1/itineraries` (lưu; máy chủ tự gợi ý lại từ tham số, không nhận lịch do client dựng), `GET /api/v1/me/itineraries`, `GET /api/v1/me/itineraries/{id}`, `DELETE /api/v1/me/itineraries/{id}`.
+
+**Cài đặt** (gói `planner`): `IteratedLocalSearch` kiểm tra chèn được hay không bằng cách tính lại lịch cả ngày thay vì cập nhật dần Wait/MaxDelay như bài báo — vì bữa trưa ăn "tại chỗ", chèn một điểm ngay trước bữa trưa làm đổi luôn chỗ ăn, công thức cập nhật dần không còn đúng. Với 38 điểm vẫn chỉ mất 11–128 ms.
 **Frontend**: cần thêm trang "Gợi ý lịch trình" (dev frontend làm theo Swagger).
 
 ### 5.4. Cách kiểm chứng
@@ -163,6 +165,37 @@ Lý do chọn: được thiết kế đúng cho "hướng dẫn viên du lịch 
 1. **Test bằng ví dụ có sẵn trong tài liệu**: ví dụ 4 địa điểm (Buijs, mục 4.1) có kết quả từng bước đã tính tay — sau bước chèn phải ra tuyến `0 → 3 → 1 → 0` với giờ đến 0, 5, 15, 25; sau bước lắc phải ra `0 → 3 → 0`. Test này đảm bảo cài đặt đúng công thức.
 2. Test luật: không ngày nào vượt quỹ giờ, không vào điểm ngoài giờ mở cửa, không vượt ngân sách, luôn có bữa trưa.
 3. So sánh với cách "tham lam" đơn giản (luôn chọn điểm điểm cao nhất kế tiếp): ILS phải cho tổng điểm ≥ tham lam trên dữ liệu mẫu. Số liệu này đưa vào báo cáo.
+
+**Kết quả** (test `IlsVersusGreedyTests`, 38 điểm đến thật, 2 người lớn, không chọn sở thích nên điểm hấp dẫn chỉ theo độ nổi bật, không giới hạn ngân sách). Ví dụ tính tay của Buijs ra đúng từng số (`IteratedLocalSearchTest`); riêng bảng 3 của luận văn in nhầm (giờ về 22, MaxDelay 8) trong khi phép tính ngay sau dùng 20 và 10.
+
+| Nơi lưu trú | Số ngày | Nhịp đi | Tham lam | Chỉ bước chèn | ILS | ILS hơn tham lam | Thời gian ILS (ms) |
+|---|---|---|---|---|---|---|---|
+| Trung tâm Vĩnh Long (cũ) | 1 | Thong thả | 100 | 300 | 300 | +200,0% | 30 |
+| Trung tâm Vĩnh Long (cũ) | 1 | Đi dày | 275 | 400 | 400 | +45,5% | 27 |
+| Trung tâm Vĩnh Long (cũ) | 2 | Thong thả | 325 | 525 | 525 | +61,5% | 35 |
+| Trung tâm Vĩnh Long (cũ) | 2 | Đi dày | 650 | 725 | 825 | +26,9% | 56 |
+| Trung tâm Vĩnh Long (cũ) | 3 | Thong thả | 650 | 700 | 700 | +7,7% | 62 |
+| Trung tâm Vĩnh Long (cũ) | 3 | Đi dày | 875 | 1000 | 1100 | +25,7% | 128 |
+| Trung tâm Bến Tre (cũ) | 1 | Thong thả | 200 | 200 | 200 | +0,0% | 11 |
+| Trung tâm Bến Tre (cũ) | 1 | Đi dày | 325 | 400 | 450 | +38,5% | 25 |
+| Trung tâm Bến Tre (cũ) | 2 | Thong thả | 450 | 500 | 500 | +11,1% | 52 |
+| Trung tâm Bến Tre (cũ) | 2 | Đi dày | 700 | 675 | 900 | +28,6% | 76 |
+| Trung tâm Bến Tre (cũ) | 3 | Thong thả | 550 | 675 | 675 | +22,7% | 49 |
+| Trung tâm Bến Tre (cũ) | 3 | Đi dày | 925 | 1025 | 1125 | +21,6% | 75 |
+| Trung tâm Trà Vinh (cũ) | 1 | Thong thả | 100 | 350 | 350 | +250,0% | 17 |
+| Trung tâm Trà Vinh (cũ) | 1 | Đi dày | 325 | 450 | 475 | +46,2% | 26 |
+| Trung tâm Trà Vinh (cũ) | 2 | Thong thả | 425 | 500 | 500 | +17,6% | 30 |
+| Trung tâm Trà Vinh (cũ) | 2 | Đi dày | 575 | 725 | 875 | +52,2% | 47 |
+| Trung tâm Trà Vinh (cũ) | 3 | Thong thả | 575 | 675 | 675 | +17,4% | 53 |
+| Trung tâm Trà Vinh (cũ) | 3 | Đi dày | 875 | 950 | 1150 | +31,4% | 60 |
+| Cù lao An Bình | 1 | Thong thả | 100 | 300 | 300 | +200,0% | 11 |
+| Cù lao An Bình | 1 | Đi dày | 275 | 400 | 400 | +45,5% | 18 |
+| Cù lao An Bình | 2 | Thong thả | 275 | 525 | 525 | +90,9% | 47 |
+| Cù lao An Bình | 2 | Đi dày | 650 | 725 | 825 | +26,9% | 47 |
+| Cù lao An Bình | 3 | Thong thả | 600 | 700 | 700 | +16,7% | 51 |
+| Cù lao An Bình | 3 | Đi dày | 875 | 1000 | 1125 | +28,6% | 71 |
+
+Đọc bảng: tham lam hay chọn ngay điểm nổi bật nhất dù ở xa và tham quan lâu, nên tốn cả buổi cho một điểm. Bước chèn đã khắc phục phần lớn nhờ tỉ số điểm²/thời gian chèn; bước lắc thêm được 5–25% ở các chuyến dài, nhiều điểm (cột "Chỉ bước chèn" so với "ILS"). Thời gian chạy thay đổi chút ít giữa các lần đo.
 
 ### 5.5. Dữ liệu điểm đến (đã thu thập)
 

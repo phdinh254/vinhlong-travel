@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/itineraries/suggest"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "startDate": "{{tripStart}}",
+      "days": 1,
+      "pace": "PACKED",
+      "lodgingLatitude": 10.24,
+      "lodgingLongitude": 106.37,
+      "adults": 1
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('Dùng tọa độ khách gửi', () => { const l = pm.response.json().lodging; pm.expect(l.latitude).to.eql(10.24); pm.expect(l.code).to.eql(null); });
+    language: text/javascript
+order: 8000
