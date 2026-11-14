@@ -74,10 +74,10 @@ Cần Docker Desktop đang chạy: test tích hợp tự bật một PostgreSQL 
 
 ### Kiểm thử API bằng Postman
 
-Bộ request có sẵn kiểm tra tự động: `backend/postman/VinhLongTour.postman_collection.json`. Mỗi giai đoạn thêm một thư mục request mới.
+Bộ request có sẵn kiểm tra tự động nằm ở `backend/postman/VinhLong Tour API/`, theo định dạng thư mục YAML của Postman 12 (mỗi request là một file `.request.yaml`, sửa trong Postman thì file trong repo đổi theo). Mỗi giai đoạn thêm một thư mục request mới.
 
-- **Trong Postman:** File → Import → chọn file trên → bấm chuột phải vào collection → **Run collection**. Backend phải đang chạy.
-- **Bằng dòng lệnh** (không cần mở Postman): `cd backend && npx newman run postman/VinhLongTour.postman_collection.json`
+1. Mở Postman 12, mở thư mục dự án này (Postman đọc `.postman/resources.yaml` và tự hiện collection **VinhLong Tour API**).
+2. Bật backend, rồi bấm chuột phải vào collection → **Run** để chạy toàn bộ kiểm tra.
 
 ## Quy ước viết code
 

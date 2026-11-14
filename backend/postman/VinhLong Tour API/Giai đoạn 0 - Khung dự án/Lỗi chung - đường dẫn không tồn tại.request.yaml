@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/khong-ton-tai"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 404', () => pm.response.to.have.status(404));
+      pm.test('Đúng dạng lỗi chung {code, message, fields}', () => {
+        const body = pm.response.json();
+        pm.expect(body.code).to.eql('NOT_FOUND');
+        pm.expect(body).to.have.property('message');
+        pm.expect(body).to.have.property('fields');
+      });
+    language: text/javascript
+order: 4000
