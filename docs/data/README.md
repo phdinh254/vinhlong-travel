@@ -1,7 +1,9 @@
 # Dữ liệu điểm đến — tỉnh Vĩnh Long (mới)
 
-File `diem-den.csv` (UTF-8, mở được bằng Excel) gồm **38 điểm đến**: 12 ở khu vực Vĩnh Long cũ, 13 ở Bến Tre cũ, 13 ở Trà Vinh cũ.
-Dữ liệu được tìm trên mạng ngày 13/11/2026. Khi làm giai đoạn 2, file này được chuyển thành dữ liệu khởi tạo (Flyway); sau đó admin sửa trực tiếp trên web.
+File `diem-den.csv` (UTF-8, phân cách bằng dấu phẩy) gồm **38 điểm đến**: 12 ở khu vực Vĩnh Long cũ, 13 ở Bến Tre cũ, 13 ở Trà Vinh cũ.
+Dữ liệu được tìm trên mạng ngày 13/11/2026. Ở giai đoạn 2, file này đã được nạp vào CSDL qua `backend/src/main/resources/db/migration/V3__seed_destinations.sql`; từ đó trở đi admin sửa dữ liệu trực tiếp trên web, sửa file CSV không làm thay đổi CSDL.
+
+> **Đừng mở file bằng Excel rồi bấm Save.** Excel ở máy cài tiếng Việt dùng dấu `;` làm dấu phân cách nên sẽ làm hỏng định dạng (đã xảy ra một lần). Muốn xem thì dùng Excel → Data → From Text/CSV, chọn dấu phẩy; muốn sửa thì sửa bằng VS Code hoặc Google Sheets.
 
 > **Cần nhóm kiểm tra trước khi bảo vệ đồ án.** Các nguồn chủ yếu là blog du lịch, mỗi nguồn cập nhật một thời điểm khác nhau. Mọi dòng có cờ `GAN_DUNG`, `UOC_TINH`, `CHUA_XAC_MINH`, `CHUA_RO` đều cần người đi thực tế hoặc gọi điện xác nhận.
 
@@ -14,7 +16,7 @@ Dữ liệu được tìm trên mạng ngày 13/11/2026. Khi làm giai đoạn 2
 | `address` | Địa chỉ theo tên xã/phường **sau sáp nhập** (khi nguồn có), kèm tên cũ trong ngoặc |
 | `lat`, `lng` | Vĩ độ, kinh độ |
 | `coord_quality` | `OSM`: đúng vị trí điểm trên OpenStreetMap · `WIKI`: tọa độ trong bài Wikipedia tiếng Việt · `GAN_DUNG`: lấy theo tâm xã/ấp hoặc điểm lân cận, **lệch có thể vài km** |
-| `tags` | Thẻ sở thích, cách nhau bằng `;`: `sinh-thai`, `van-hoa`, `tam-linh`, `lich-su`, `lang-nghe`, `bien`, `cho-am-thuc`, `vui-choi`, `khac` |
+| `tags` | Thẻ sở thích, cách nhau bằng `;`: `sinh-thai`, `van-hoa`, `tam-linh`, `lich-su`, `lang-nghe`, `bien`, `cho-am-thuc`, `vui-choi`, `khac` (trong CSDL là bảng `tour_categories`) |
 | `open_time`, `close_time` | Giờ mở/đóng cửa (dùng cho khung giờ trong gợi ý lịch trình) |
 | `hours_quality` | `NGUON`: có trong nguồn · `CA_NGAY`: nguồn ghi "mở cả ngày", app quy về 06:00–18:00 · `UOC_TINH`: không có nguồn, mình ước tính · `CHUA_XAC_MINH`: chỉ thấy trong tóm tắt kết quả tìm kiếm, chưa mở được trang gốc |
 | `ticket_adult`, `ticket_child` | Giá vé (đồng). `0` = miễn phí. Trống = không rõ. Khi nguồn ghi một khoảng giá thì lấy mức cao, để không vượt ngân sách của khách |
@@ -50,5 +52,5 @@ Các điểm dưới đây có trong nguồn nhưng mình không tìm được t
 ## Điểm đáng chú ý khi dùng cho gợi ý lịch trình
 
 - **Chợ nổi Trà Ôn** đặt khung 05:00–09:00 vì chợ nổi họp buổi sáng, dù nguồn ghi "cả ngày".
-- **Văn Thánh Miếu** đóng cửa Chủ nhật — giai đoạn 2 cần thêm cột ngày đóng cửa trong tuần.
+- **Văn Thánh Miếu** đóng cửa Chủ nhật — đã ghi vào bảng `destination_closed_days` khi nạp (CSV không có cột này).
 - **Cồn Phụng, cù lao An Bình, Cồn Chim** phải đi thuyền/phà; thời gian di chuyển ước tính theo đường chim bay sẽ thấp hơn thực tế.
