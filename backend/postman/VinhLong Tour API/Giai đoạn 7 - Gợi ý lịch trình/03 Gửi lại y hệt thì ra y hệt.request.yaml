@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/itineraries/suggest"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "startDate": "{{tripStart}}",
+      "days": 2,
+      "pace": "MODERATE",
+      "lodging": "VINH_LONG_CENTER",
+      "adults": 2,
+      "children": 1,
+      "budget": 2000000,
+      "categoryIds": [{{cultureId}}]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('Thuật toán không ngẫu nhiên: cùng đầu vào, cùng lịch trình', () => pm.expect(JSON.stringify(pm.response.json().dayPlans)).to.eql(pm.collectionVariables.get('tripPlanJson')));
+    language: text/javascript
+order: 4000

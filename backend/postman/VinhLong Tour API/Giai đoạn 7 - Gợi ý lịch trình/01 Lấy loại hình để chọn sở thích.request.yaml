@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/tour-categories"
+method: GET
+scripts:
+  - type: beforeRequest
+    code: |-
+      // Ngày bắt đầu: 3 ngày sau theo giờ Việt Nam
+      pm.collectionVariables.set('tripStart', new Date(Date.now() + 7 * 36e5 + 3 * 864e5).toISOString().slice(0, 10));
+      pm.collectionVariables.set('pastDate', new Date(Date.now() + 7 * 36e5 - 864e5).toISOString().slice(0, 10));
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.collectionVariables.set('cultureId', pm.response.json().find(c => c.name === 'Văn hóa').id);
+    language: text/javascript
+order: 2000

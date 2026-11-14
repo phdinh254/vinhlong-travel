@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/itineraries"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "Thử",
+      "request": {
+        "startDate": "{{tripStart}}",
+        "days": 2,
+        "pace": "MODERATE",
+        "lodging": "VINH_LONG_CENTER",
+        "adults": 2,
+        "children": 1,
+        "budget": 2000000,
+        "categoryIds": [{{cultureId}}]
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('Trả 401', () => pm.response.to.have.status(401));
+    language: text/javascript
+order: 10000

@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/itineraries/suggest"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "startDate": "{{tripStart}}",
+      "days": 2,
+      "pace": "RELAXED",
+      "lodging": "TRA_VINH_CENTER",
+      "adults": 2,
+      "budget": 100000
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 400', () => pm.response.to.have.status(400));
+      pm.test('code = BUDGET_TOO_LOW', () => pm.expect(pm.response.json().code).to.eql('BUDGET_TOO_LOW'));
+    language: text/javascript
+order: 7000

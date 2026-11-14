@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/itineraries/suggest"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "startDate": "{{tripStart}}",
+      "days": 1,
+      "pace": "RELAXED",
+      "adults": 1
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 400', () => pm.response.to.have.status(400));
+      pm.test('code = LODGING_REQUIRED', () => pm.expect(pm.response.json().code).to.eql('LODGING_REQUIRED'));
+    language: text/javascript
+order: 6000
