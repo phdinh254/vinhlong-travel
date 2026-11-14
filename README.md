@@ -3,7 +3,7 @@
 Đồ án môn **Lập trình ứng dụng hướng đối tượng**: website giới thiệu du lịch, đặt tour và gợi ý lịch trình cho khách du lịch tỉnh Vĩnh Long mới (khu vực Vĩnh Long, Bến Tre, Trà Vinh cũ).
 
 > **Đang xây dựng lại backend** trên nhánh `hoanglong`, theo kế hoạch ở [`docs/KE_HOACH_BACKEND.md`](docs/KE_HOACH_BACKEND.md).
-> Hiện xong **giai đoạn 2** (tài khoản, đăng nhập; danh mục và 38 điểm đến). Frontend vẫn gọi API của bản cũ nên chưa chạy cùng backend mới; bảng đối chiếu API cũ → mới sẽ có ở `docs/API_CHANGES.md` (giai đoạn 9).
+> Hiện xong **giai đoạn 3** (tài khoản, đăng nhập; danh mục và 38 điểm đến; tour, lịch trình, đợt khởi hành). Frontend vẫn gọi API của bản cũ nên chưa chạy cùng backend mới; bảng đối chiếu API cũ → mới sẽ có ở `docs/API_CHANGES.md` (giai đoạn 9).
 
 | Thành phần | Công nghệ |
 |---|---|

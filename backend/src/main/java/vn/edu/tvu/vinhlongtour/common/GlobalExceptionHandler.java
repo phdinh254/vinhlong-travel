@@ -3,6 +3,7 @@ package vn.edu.tvu.vinhlongtour.common;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -39,6 +40,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ApiError> handleConflict(DataIntegrityViolationException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError("DATA_CONFLICT",
                 "Dữ liệu bị trùng, hoặc đang được dữ liệu khác sử dụng nên không thể xóa"));
+    }
+
+    // Hai người cùng sửa một bản ghi có cột version (ví dụ đợt khởi hành): người lưu sau bị từ chối thay vì ghi đè
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiError> handleConcurrentUpdate(ObjectOptimisticLockingFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError("CONCURRENT_UPDATE",
+                "Dữ liệu vừa được người khác thay đổi, vui lòng tải lại rồi thử lại"));
     }
 
     @ExceptionHandler(Exception.class)

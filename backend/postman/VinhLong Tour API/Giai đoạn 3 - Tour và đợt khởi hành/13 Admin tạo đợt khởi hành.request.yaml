@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/tours/{{tourId}}/departures"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "departureAt": "{{departureAt}}",
+      "returnAt": "{{returnAt}}",
+      "bookingDeadline": "{{bookingDeadline}}",
+      "capacity": 25,
+      "prices": {{pricesJson}}
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      const d = pm.response.json();
+      pm.test('Mã đợt = mã tour + ngày giờ đi, còn 25 chỗ, đặt được', () => {
+        pm.expect(d.code.startsWith(pm.collectionVariables.get('tourCode') + '-')).to.eql(true);
+        pm.expect(d.seatsLeft).to.eql(25);
+        pm.expect(d.bookable).to.eql(true);
+      });
+      pm.collectionVariables.set('departureId', d.id);
+    language: text/javascript
+order: 14000

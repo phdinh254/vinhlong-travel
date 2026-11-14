@@ -32,7 +32,8 @@ public class SecurityConfig {
     /** API chỉ đọc mà khách chưa đăng nhập cũng xem được (danh mục, điểm đến, chính sách). */
     private static final String[] PUBLIC_GET = {
             "/api/v1/regions", "/api/v1/tour-categories", "/api/v1/amenities", "/api/v1/passenger-types",
-            "/api/v1/surcharges", "/api/v1/cancellation-policies/current", "/api/v1/destinations", "/api/v1/destinations/*"};
+            "/api/v1/surcharges", "/api/v1/cancellation-policies/current", "/api/v1/destinations", "/api/v1/destinations/*",
+            "/api/v1/tours", "/api/v1/tours/*", "/api/v1/tours/*/departures", "/api/v1/departures/*", "/api/v1/departures/*/itinerary"};
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, AccountJwtConverter jwtConverter,

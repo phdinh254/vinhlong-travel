@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/departures/{{departureId}}/itinerary"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('Ngày 1 vẫn là Vĩnh Long (đợt giữ bản sao riêng)', () => pm.expect(pm.response.json().days[0].title).to.eql('Vĩnh Long'));
+    language: text/javascript
+order: 19000

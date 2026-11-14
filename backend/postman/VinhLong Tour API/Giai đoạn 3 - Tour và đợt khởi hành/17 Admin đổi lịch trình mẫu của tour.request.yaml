@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/tours/{{tourId}}/itinerary"
+method: PUT
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "days": [
+        { "title": "Lịch trình mới ngày 1", "activities": [] },
+        { "title": "Lịch trình mới ngày 2", "activities": [] }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('Trả 200', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 18000
