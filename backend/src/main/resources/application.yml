@@ -13,6 +13,9 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate   # Bảng do Flyway tạo (src/main/resources/db/migration), Hibernate chỉ kiểm tra
+    properties:
+      # Nạp quan hệ (khu vực, loại hình...) của cả trang kết quả trong một câu truy vấn, tránh mỗi dòng một truy vấn
+      hibernate.default_batch_fetch_size: 50
 
 app:
   jwt:

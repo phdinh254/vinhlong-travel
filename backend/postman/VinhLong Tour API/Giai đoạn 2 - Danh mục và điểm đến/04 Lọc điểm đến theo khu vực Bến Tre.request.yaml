@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/destinations?regionId={{regionBenTreId}}&size=100"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const seeded = pm.response.json().items.filter(d => /^(VL|BT|TV)\d\d$/.test(d.code));
+      pm.test('13 điểm, đều thuộc Bến Tre', () => {
+        pm.expect(seeded.length).to.eql(13);
+        seeded.forEach(d => pm.expect(d.code).to.match(/^BT/));
+      });
+    language: text/javascript
+order: 5000

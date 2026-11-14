@@ -33,10 +33,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(ex.getStatus()).body(new ApiError(ex.getCode(), ex.getMessage()));
     }
 
-    // Hai request cùng ghi một giá trị phải duy nhất (ví dụ cùng email) cùng lúc: CSDL chặn, báo xung đột thay vì lỗi 500
+    // CSDL chặn ghi vì trùng giá trị duy nhất (hai người cùng đăng ký một email cùng lúc)
+    // hoặc vì xóa bản ghi đang được bản ghi khác dùng: báo xung đột thay vì lỗi 500
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleConflict(DataIntegrityViolationException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError("DATA_CONFLICT", "Dữ liệu bị trùng hoặc vừa bị thay đổi, vui lòng thử lại"));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError("DATA_CONFLICT",
+                "Dữ liệu bị trùng, hoặc đang được dữ liệu khác sử dụng nên không thể xóa"));
     }
 
     @ExceptionHandler(Exception.class)

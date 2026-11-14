@@ -92,7 +92,7 @@ Sẽ vẽ **sơ đồ lớp** và **ERD** bằng draw.io để đưa vào báo c
 |---|---|---|
 | TaiKhoan, VaiTro | `Account`, `Role` | `Role` là enum (ADMIN, CUSTOMER) lưu trong cột `accounts.role`, không cần bảng riêng vì chỉ có 2 vai trò cố định |
 | KhachHang | `Customer` | Có thể không có tài khoản (khách vãng lai) |
-| KhuVuc, LoaiHinh, DichVu | `Region`, `TourCategory`, `Amenity` | |
+| KhuVuc, LoaiHinh, DichVu | `Region`, `TourCategory`, `Amenity` | Cùng kế thừa `NamedItem`; dùng chung `NamedItemService<T>` và một controller `/api/v1/{regions,tour-categories,amenities}` |
 | DiemDen | `Destination` | **Thêm**: tọa độ, thời gian tham quan, giờ mở/đóng cửa, chi phí ước tính/người, độ nổi bật, thẻ sở thích |
 | DiemDon | `PickupPoint` | |
 | LoaiKhach | `PassengerType` | Khoảng tuổi, hệ số chiếm chỗ |
