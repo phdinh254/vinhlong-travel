@@ -17,7 +17,8 @@ import java.time.Instant;
  */
 public final class AuthDtos {
 
-    private static final String PHONE = "^[0-9+]{9,15}$";
+    // Cho phép chuỗi rỗng vì số điện thoại không bắt buộc và form thường gửi "" khi bỏ trống
+    private static final String PHONE = "^$|^[0-9+]{9,15}$";
 
     private AuthDtos() {
     }

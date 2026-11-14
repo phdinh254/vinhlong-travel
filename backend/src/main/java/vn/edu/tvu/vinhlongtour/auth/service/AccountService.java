@@ -132,6 +132,10 @@ public class AccountService {
             log.warn("Chưa có tài khoản admin. Đặt biến môi trường ADMIN_PASSWORD (và ADMIN_EMAIL) rồi khởi động lại để tạo.");
             return;
         }
+        if (accounts.existsByEmail(Account.normalizeEmail(admin.email()))) {
+            log.warn("Không tạo được admin: email {} đã thuộc một tài khoản khách hàng. Đặt ADMIN_EMAIL khác rồi khởi động lại.", admin.email());
+            return;
+        }
         accounts.save(Account.withPassword(admin.email(), encode(admin.password()), "Quản trị viên", Role.ADMIN));
         log.info("Đã tạo tài khoản admin {}", Account.normalizeEmail(admin.email()));
     }
