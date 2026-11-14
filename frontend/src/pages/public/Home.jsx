@@ -2,15 +2,25 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api, { errMsg, fmtDate, imgUrl, money } from '../../api'
 import { TourCard, Loading } from '../../components/ui.jsx'
-import { tourImage } from '../../tourUtils.js'
 import { tenChuyenMuc, anhMacDinh } from '../../content/chuyenMuc.js'
 import { SO_NGAY } from '../../content/timTour.js'
+import SearchSelect, { Icon } from '../../components/SearchSelect.jsx'
 import { DIEM_DEN, TRAI_NGHIEM, QUY_TRINH, SO_LIEU, DANH_GIA, FAQ } from '../../content/trangChu.js'
 import { useReveal } from '../../useReveal.js'
 import './home.css'
 
 const img = (k) => `/images/${k}.jpg`
-const MOSAIC = ['vui-choi', 'song-nuoc', 'con-phung', 'homestay', 'an-binh', 'lang-gom']
+/** Ảnh nhân vật hero – thay bằng ảnh PNG tách nền (vd. /images/hdv.png) để nhân vật nổi trên khối tròn */
+const HERO_NHAN_VAT = img('cho-noi')
+/** Ảnh gallery trải nghiệm: [tên ảnh, hình dạng (sq vuông · land ngang · wide rộng · tall đứng), mô tả] — 3 hàng chạy ngang */
+const GALLERY = [
+  [['vui-choi', 'land', 'Vui chơi ở ao Bà Om'], ['keo-dua', 'sq', 'Kẹo dừa Bến Tre'], ['cho-noi', 'tall', 'Chợ nổi Cái Bè'],
+    ['an-binh', 'land', 'Cù lao An Bình'], ['chua-ang', 'sq', 'Cổng chùa Âng'], ['kenh-rach', 'wide', 'Kênh rạch miền Tây'], ['lang-gom', 'tall', 'Làng gốm Mang Thít']],
+  [['song-nuoc', 'wide', 'Đời sống trên sông Mekong'], ['homestay', 'sq', 'Homestay nhà vườn'], ['con-phung', 'land', 'Tàu du lịch cập bến cồn Phụng'],
+    ['van-thanh-mieu', 'tall', 'Văn Thánh Miếu Vĩnh Long'], ['kenh-rach-2', 'land', 'Xuồng trên kênh rạch'], ['chua-hang', 'sq', 'Chính điện chùa Hang']],
+  [['mang-thit', 'sq', 'Lò gạch Mang Thít'], ['ao-ba-om', 'land', 'Ao Bà Om'], ['keo-dua', 'tall', 'Làm kẹo dừa'],
+    ['cho-noi', 'land', 'Ghe hàng chợ nổi'], ['homestay', 'wide', 'Không gian homestay'], ['vui-choi', 'sq', 'Trò chơi dân gian'], ['an-binh', 'tall', 'Đường làng An Bình']],
+]
 const ngayNgan = (v) => new Date(v).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })
 
 /** Tạo link /tour?... từ tên điểm đến / loại hình (so khớp với danh mục trong DB), dự phòng bằng từ khóa */
@@ -59,21 +69,23 @@ export default function Home() {
 
   return (
     <div className="lp" ref={root}>
-      {/* ---------- 02 Hero ---------- */}
+      {/* ---------- 02 Hero (Split Hero – phong cách doanh nghiệp hiện đại) ---------- */}
       <section className="lp-hero">
-        <div className="lp-orb a" /><div className="lp-orb b" />
+        <div className="lp-hero-dots" aria-hidden="true" />
         <div className="container lp-hero-grid">
           <div className="lp-hero-text">
-            <h1 className="lp-in" style={{ '--d': '120ms' }}>Khám phá <span className="lp-grad-text">Vĩnh Long</span> theo cách của bạn</h1>
-            <p className="lp-in" style={{ '--d': '240ms' }}>Tour trọn gói Vĩnh Long – Bến Tre – Trà Vinh. Chọn lịch, đặt chỗ và thanh toán trực tuyến trong vài phút.</p>
+            <h1 className="lp-in" style={{ '--d': '120ms' }}>Khám phá <span className="lp-hl">Vĩnh Long</span> theo cách của bạn</h1>
+            <p className="lp-in" style={{ '--d': '240ms' }}>Tour trọn gói miền sông nước với hướng dẫn viên bản địa. Chọn lịch, đặt chỗ và thanh toán trực tuyến chỉ trong vài phút.</p>
             <div className="lp-cta lp-in" style={{ '--d': '360ms' }}>
               <Link to="/tour" className="lp-btn primary lp-cta-main">Đặt tour ngay →</Link>
             </div>
           </div>
 
           <div className="lp-visual">
-            <div className="lp-photo lp-in" style={{ '--d': '200ms', backgroundImage: `url(${hero ? tourImage(hero) : img('an-binh')})` }} role="img"
-              aria-label={hero ? hero.tenTour : 'Cù lao An Bình'} />
+            <div className="lp-blob lp-in" style={{ '--d': '160ms' }} aria-hidden="true" />
+            <div className="lp-ring" aria-hidden="true" />
+            <div className="lp-figure lp-in" style={{ '--d': '260ms', backgroundImage: `url(${HERO_NHAN_VAT})` }} role="img"
+              aria-label="Người dân chèo xuồng ở chợ nổi miền Tây" />
             {hero && (
               <Link to={`/tour/${hero.tourId}`} className="lp-float f1 lp-in" style={{ '--d': '520ms' }}>
                 <small>{hero.noiBat ? 'Tour nổi bật' : 'Tour gợi ý'}</small>
@@ -98,31 +110,17 @@ export default function Home() {
 
         {/* ---------- 03 Tìm tour ---------- */}
         <form className="lp-search lp-in" style={{ '--d': '420ms' }} onSubmit={search} aria-label="Tìm tour">
-          <label className="lp-sf"><span>Điểm đến</span>
-            <select value={f.diemDenId} onChange={(e) => setF({ ...f, diemDenId: e.target.value })}>
-              <option value="">Bạn muốn đi đâu?</option>
-              {dm.diemDens.map((d) => <option key={d.diemDenId} value={d.diemDenId}>{d.tenDiemDen}</option>)}
-            </select>
-          </label>
-          <label className="lp-sf"><span>Khu vực</span>
-            <select value={f.khuVucId} onChange={(e) => setF({ ...f, khuVucId: e.target.value })}>
-              <option value="">Mọi khu vực</option>
-              {dm.khuVucs.map((k) => <option key={k.id} value={k.id}>{k.ten.replace(/^Khu vực\s*/i, '')}</option>)}
-            </select>
-          </label>
-          <label className="lp-sf"><span>Loại hình</span>
-            <select value={f.loaiHinhId} onChange={(e) => setF({ ...f, loaiHinhId: e.target.value })}>
-              <option value="">Mọi loại hình</option>
-              {dm.loaiHinhs.map((k) => <option key={k.id} value={k.id}>{k.ten}</option>)}
-            </select>
-          </label>
-          <label className="lp-sf"><span>Thời lượng</span>
-            <select value={f.soNgay} onChange={(e) => setF({ ...f, soNgay: e.target.value })}>
-              <option value="">Bao lâu cũng được</option>
-              {SO_NGAY.map((s) => <option key={s.id} value={s.id}>{s.ten}</option>)}
-            </select>
-          </label>
-          <button className="lp-btn primary">Tìm tour</button>
+          <SearchSelect label="Điểm đến" icon="pin" value={f.diemDenId} onChange={(v) => setF({ ...f, diemDenId: v })}
+            options={[{ value: '', label: 'Bạn muốn đi đâu?' }, ...dm.diemDens.map((d) => ({ value: d.diemDenId, label: d.tenDiemDen }))]} />
+          <SearchSelect label="Khu vực" icon="map" value={f.khuVucId} onChange={(v) => setF({ ...f, khuVucId: v })}
+            options={[{ value: '', label: 'Mọi khu vực' }, ...dm.khuVucs.map((k) => ({ value: k.id, label: k.ten.replace(/^Khu vực\s*/i, '') }))]} />
+          <SearchSelect label="Loại hình" icon="compass" value={f.loaiHinhId} onChange={(v) => setF({ ...f, loaiHinhId: v })}
+            options={[{ value: '', label: 'Mọi loại hình' }, ...dm.loaiHinhs.map((k) => ({ value: k.id, label: k.ten }))]} />
+          <SearchSelect label="Thời lượng" icon="clock" value={f.soNgay} onChange={(v) => setF({ ...f, soNgay: v })}
+            options={[{ value: '', label: 'Bao lâu cũng được' }, ...SO_NGAY.map((s) => ({ value: s.id, label: s.ten }))]} />
+          <button className="lp-search-btn">
+            <Icon name="search" size={20} /><span>Tìm kiếm tour</span><Icon name="arrow" size={18} className="go" />
+          </button>
         </form>
       </section>
 
@@ -182,15 +180,25 @@ export default function Home() {
       <section className="lp-proof">
         <div className="container lp-proof-grid">
           <div className="lp-info" data-reveal>
-            <span className="lp-chip light">Hành trình đã đồng hành</span>
             <h2>Hành trình được tạo nên từ những trải nghiệm đáng nhớ</h2>
             <div className="lp-stats">
               {SO_LIEU.map(([n, l]) => <div key={l}><b>{n}</b><span>{l}</span></div>)}
             </div>
             <p className="lp-demo">* Số liệu minh họa trong giai đoạn demo, sẽ được cập nhật bằng dữ liệu thực tế.</p>
           </div>
-          <div className="lp-mosaic">
-            {MOSAIC.map((k) => <div key={k} style={{ backgroundImage: `url(${img(k)})` }} />)}
+          {/* Gallery: 3 hàng ảnh chạy ngang vô hạn (phải → trái), mỗi hàng nhân đôi danh sách để vòng lặp liền mạch */}
+          <div className="lp-gallery" role="group" aria-label="Hình ảnh trải nghiệm du lịch">
+            {GALLERY.map((row, i) => (
+              <div key={i} className={`lp-marquee r${i + 1}`}>
+                <div className="lp-track">
+                  {[...row, ...row].map(([k, shape, alt], j) => (
+                    <figure key={j} className={`lp-shot ${shape}`} aria-hidden={j >= row.length || undefined}>
+                      <img src={img(k)} alt={j < row.length ? alt : ''} loading="lazy" decoding="async" />
+                    </figure>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -224,7 +232,7 @@ export default function Home() {
       {/* ---------- 12 FAQ ---------- */}
       <section className="lp-sec container lp-faq-wrap">
         <div className="lp-faq-intro">
-          <span className="lp-eyebrow">Hỏi đáp</span>
+          <span className="eyebrow">Hỏi đáp</span>
           <h2>Câu hỏi thường gặp</h2>
           <p>Chưa thấy câu trả lời bạn cần? Hãy để lại câu hỏi, chúng tôi phản hồi trong giờ làm việc.</p>
           <Link className="lp-btn primary sm" to="/lien-he">Gửi câu hỏi</Link>
@@ -244,8 +252,8 @@ export default function Home() {
 
 function Head({ eyebrow, title, to, more = 'Xem tất cả' }) {
   return (
-    <div className="lp-head">
-      <div>{eyebrow && <span className="lp-eyebrow">{eyebrow}</span>}<h2>{title}</h2></div>
+    <div className={`lp-head${to ? '' : ' is-center'}`}>
+      <div>{eyebrow && <span className="eyebrow">{eyebrow}</span>}<h2>{title}</h2></div>
       {to && <Link to={to} className="lp-more">{more} →</Link>}
     </div>
   )
@@ -261,7 +269,7 @@ function Reviews() {
   return (
     <>
       <div className="lp-head">
-        <div><span className="lp-eyebrow">Đánh giá</span><h2>Khách hàng nói gì</h2></div>
+        <div><span className="eyebrow">Đánh giá</span><h2>Khách hàng nói gì</h2></div>
         <div className="lp-arrows">
           <button type="button" onClick={() => go(-1)} aria-label="Đánh giá trước">←</button>
           <button type="button" onClick={() => go(1)} aria-label="Đánh giá sau">→</button>

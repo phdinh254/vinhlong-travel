@@ -84,7 +84,7 @@ export default function Contact() {
       {/* ---------- Mở đầu + kênh liên hệ nhanh ---------- */}
       <header className="ct-mast">
         <div className="container">
-          <span className="ct-eyebrow">Liên hệ</span>
+          <span className="eyebrow">Liên hệ</span>
           <h1>Chúng tôi luôn sẵn sàng lắng nghe</h1>
           <p className="ct-lead">Cần tư vấn hành trình, đặt tour cho nhóm hay hỏi về đơn đã đặt? Chọn cách thuận tiện nhất với bạn.</p>
           <div className="ct-quick">

@@ -77,7 +77,7 @@ export default function Services() {
       <header className="sv-mast">
         <svg className="sv-leaf" viewBox="0 0 200 200" aria-hidden="true"><path d="M100 10C150 40 190 90 170 140S90 200 50 170 10 80 40 50 70 0 100 10Z" /></svg>
         <div className="container">
-          <span className="sv-eyebrow">Dịch vụ</span>
+          <span className="eyebrow">Dịch vụ</span>
           <h1>Mọi thứ cho một chuyến đi trọn vẹn</h1>
           <p className="sv-lead">Những tiện ích và hỗ trợ đi kèm mỗi tour của chúng tôi, để bạn chỉ việc chọn hành trình và tận hưởng miền Tây.</p>
           <div className="sv-mast-cta">
@@ -89,8 +89,8 @@ export default function Services() {
 
       {/* ---------- Đi kèm trong tour (bento) ---------- */}
       <section className="container sv-sec">
-        <div className="sv-head">
-          <span className="sv-eyebrow">Đi kèm trong tour</span>
+        <div className="sv-head is-center">
+          <span className="eyebrow">Đi kèm trong tour</span>
           <h2>Đã lo sẵn cho bạn</h2>
           <p>Mức bao gồm khác nhau theo từng tour, xem mục “Bao gồm” trong trang chi tiết hoặc lọc tour theo dịch vụ.</p>
         </div>
@@ -118,8 +118,8 @@ export default function Services() {
       {dm.phuThus.length > 0 && (
         <section className="sv-band" id="tuy-chon">
           <div className="container sv-sec">
-            <div className="sv-head">
-              <span className="sv-eyebrow">Tùy chọn thêm</span>
+            <div className="sv-head is-center">
+              <span className="eyebrow">Tùy chọn thêm</span>
               <h2>Chọn thêm khi đặt tour</h2>
               <p>Bạn chọn các tiện ích này ở bước đặt tour; tổng tiền được tính và hiển thị trước khi xác nhận.</p>
             </div>
@@ -140,8 +140,8 @@ export default function Services() {
 
       {/* ---------- Hỗ trợ trước & sau chuyến đi ---------- */}
       <section className="container sv-sec">
-        <div className="sv-head">
-          <span className="sv-eyebrow">Hỗ trợ khách hàng</span>
+        <div className="sv-head is-center">
+          <span className="eyebrow">Hỗ trợ khách hàng</span>
           <h2>Đồng hành trước, trong và sau chuyến đi</h2>
         </div>
         <ol className="sv-support">
