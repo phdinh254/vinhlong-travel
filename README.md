@@ -3,7 +3,7 @@
 Đồ án môn **Lập trình ứng dụng hướng đối tượng**: website giới thiệu du lịch, đặt tour và gợi ý lịch trình cho khách du lịch tỉnh Vĩnh Long mới (khu vực Vĩnh Long, Bến Tre, Trà Vinh cũ).
 
 > **Đang xây dựng lại backend** trên nhánh `hoanglong`, theo kế hoạch ở [`docs/KE_HOACH_BACKEND.md`](docs/KE_HOACH_BACKEND.md).
-> Hiện xong **giai đoạn 4** (tài khoản, đăng nhập; danh mục và 38 điểm đến; tour, lịch trình, đợt khởi hành; đặt tour, giữ chỗ). Frontend vẫn gọi API của bản cũ nên chưa chạy cùng backend mới; bảng đối chiếu API cũ → mới sẽ có ở `docs/API_CHANGES.md` (giai đoạn 9).
+> Hiện xong **giai đoạn 5** (tài khoản, đăng nhập; danh mục và 38 điểm đến; tour, lịch trình, đợt khởi hành; đặt tour, giữ chỗ; thanh toán VNPay và xác nhận thủ công). Frontend vẫn gọi API của bản cũ nên chưa chạy cùng backend mới; bảng đối chiếu API cũ → mới sẽ có ở `docs/API_CHANGES.md` (giai đoạn 9).
 
 | Thành phần | Công nghệ |
 |---|---|
@@ -69,6 +69,9 @@ Cấu hình qua biến môi trường:
 | `JWT_SECRET` | *trống* | Khóa ký token đăng nhập, ít nhất 32 ký tự. Để trống: sinh khóa ngẫu nhiên mỗi lần chạy, phải đăng nhập lại sau khi khởi động lại backend |
 | `GOOGLE_CLIENT_ID` | *trống* | Client ID (loại Web application) trên Google Cloud Console, giống `VITE_GOOGLE_CLIENT_ID` của frontend. Để trống thì đăng nhập Google báo `GOOGLE_NOT_CONFIGURED` |
 | `CORS_ORIGINS` | `http://localhost:5173` | Địa chỉ frontend được gọi API, nhiều địa chỉ cách nhau bằng dấu phẩy |
+| `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET` | *trống* | Mã website và khóa bí mật VNPay (đăng ký sandbox tại https://sandbox.vnpayment.vn/devreg/). Để trống thì tạo link thanh toán báo `VNPAY_NOT_CONFIGURED` |
+| `VNPAY_RETURN_URL` | `http://localhost:5173/thanh-toan/ket-qua` | Trang frontend VNPay đưa khách về; trang này gọi `GET /api/v1/payments/vnpay/return` kèm nguyên chuỗi tham số VNPay |
+| `VNPAY_PROCESS_ON_RETURN` | `true` | Ghi nhận kết quả ngay ở trang kết quả (dữ liệu có chữ ký nên tin được). Cần khi chạy localhost vì VNPay không gọi IPN vào máy cá nhân được. Khi có tên miền thật, khai báo IPN URL `https://<backend>/api/v1/payments/vnpay/ipn` trên cổng VNPay |
 | `SERVER_PORT`, `DB_URL`, `DB_USER`, `DB_PASSWORD` | khớp `docker-compose.yml` | Cổng backend và kết nối CSDL |
 
 Nếu cổng 5432 đã bị chiếm, chạy `DB_PORT=5433 docker compose up -d` và đặt `DB_URL=jdbc:postgresql://localhost:5433/vinhlongtour`.
@@ -91,13 +94,13 @@ Cần Docker Desktop đang chạy: test tích hợp tự bật một PostgreSQL 
 Bộ request có sẵn kiểm tra tự động nằm ở `backend/postman/VinhLong Tour API/`, theo định dạng thư mục YAML của Postman 12 (mỗi request là một file `.request.yaml`, sửa trong Postman thì file trong repo đổi theo). Mỗi giai đoạn thêm một thư mục request mới.
 
 1. Mở Postman 12, mở thư mục dự án này (Postman đọc `.postman/resources.yaml` và tự hiện collection **VinhLong Tour API**).
-2. Ở tab **Variables** của collection, điền `adminPassword` giống `ADMIN_PASSWORD` lúc chạy backend.
+2. Ở tab **Variables** của collection, điền `adminPassword` giống `ADMIN_PASSWORD`, và `vnpHashSecret` giống `VNPAY_HASH_SECRET` lúc chạy backend (giai đoạn 5 tự ký dữ liệu để giả lập VNPay gọi IPN; khi thử trên máy có thể đặt `VNPAY_TMN_CODE=TESTTMN1` và một khóa bất kỳ).
 3. Bật backend, rồi bấm chuột phải vào collection → **Run** để chạy toàn bộ kiểm tra theo thứ tự.
 
 Chạy bằng dòng lệnh (Postman CLI, không cần đăng nhập Postman):
 
 ```bash
-npx -p postman-cli postman collection run "backend/postman/VinhLong Tour API" --env-var "adminPassword=MatKhauAdminCuaBan"
+npx -p postman-cli postman collection run "backend/postman/VinhLong Tour API" --env-var "adminPassword=MatKhauAdminCuaBan" --env-var "vnpHashSecret=KhoaVnPayCuaBan"
 ```
 
 ## Quy ước viết code

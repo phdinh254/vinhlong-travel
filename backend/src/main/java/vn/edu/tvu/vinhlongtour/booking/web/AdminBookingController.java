@@ -29,15 +29,19 @@ public class AdminBookingController {
         this.service = service;
     }
 
-    /** {@code q} tìm trong mã đơn, tên và SĐT người liên hệ. */
+    /**
+     * {@code q} tìm trong mã đơn, tên và SĐT người liên hệ.
+     * {@code needsRefund=true}: chỉ các đơn đã thu thừa tiền, cần hoàn cho khách.
+     */
     @GetMapping
     public PageResponse<BookingSummary> search(@RequestParam(required = false) String q,
                                                @RequestParam(required = false) BookingStatus status,
                                                @RequestParam(required = false) Long tourId,
                                                @RequestParam(required = false) Long departureId,
+                                               @RequestParam(defaultValue = "false") boolean needsRefund,
                                                @RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "20") int size) {
-        return service.search(q, status, tourId, departureId, page, size);
+        return service.search(q, status, tourId, departureId, needsRefund, page, size);
     }
 
     @GetMapping("/{id}")

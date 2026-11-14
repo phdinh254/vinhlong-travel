@@ -7,3 +7,6 @@ app:
     password: Admin@12345
   google:
     client-id: test-google-client-id
+  vnpay:
+    tmn-code: TESTTMN1
+    hash-secret: KHOA-BI-MAT-VNPAY-CHI-DUNG-CHO-KIEM-THU

@@ -14,6 +14,9 @@ import vn.edu.tvu.vinhlongtour.booking.domain.BookingStatus;
 import vn.edu.tvu.vinhlongtour.booking.domain.Gender;
 import vn.edu.tvu.vinhlongtour.booking.domain.Passenger;
 import vn.edu.tvu.vinhlongtour.booking.domain.PassengerStatus;
+import vn.edu.tvu.vinhlongtour.booking.domain.Payment;
+import vn.edu.tvu.vinhlongtour.booking.domain.PaymentMethod;
+import vn.edu.tvu.vinhlongtour.booking.domain.PaymentStatus;
 import vn.edu.tvu.vinhlongtour.catalog.domain.SurchargeMethod;
 import vn.edu.tvu.vinhlongtour.catalog.web.CatalogDtos.CancellationPolicyResponse;
 import vn.edu.tvu.vinhlongtour.tour.domain.Departure;
@@ -81,16 +84,17 @@ public final class BookingDtos {
 
     public record SurchargeLine(Long surchargeId, String name, SurchargeMethod method, int quantity, long unitPrice, long amount) {}
 
+    /** {@code refundDue} > 0: đã thu thừa, cần hoàn cho khách. */
     public record BookingSummary(Long id, String code, BookingStatus status, String tourName, String departureCode,
                                  LocalDateTime departureAt, String contactName, String contactPhone, int passengerCount,
-                                 long totalAmount, long paidAmount, LocalDateTime holdUntil, LocalDateTime createdAt) {
+                                 long totalAmount, long paidAmount, long refundDue, LocalDateTime holdUntil, LocalDateTime createdAt) {
 
         public static BookingSummary from(Booking b) {
             Departure d = b.getDeparture();
             return new BookingSummary(b.getId(), b.getCode(), b.getStatus(), d.getTour().getName(), d.getCode(), d.getDepartureAt(),
                     b.getContactName(), b.getContactPhone(),
                     (int) b.getPassengers().stream().filter(p -> p.getStatus() == PassengerStatus.ACTIVE).count(),
-                    b.getTotalAmount(), b.getPaidAmount(), b.getHoldUntil(), b.getCreatedAt());
+                    b.getTotalAmount(), b.getPaidAmount(), b.refundDue(), b.getHoldUntil(), b.getCreatedAt());
         }
     }
 
@@ -98,9 +102,9 @@ public final class BookingDtos {
                                 TourRef tour, DepartureRef departure, ContactInfo contact, String note,
                                 List<PassengerResponse> passengers, List<SurchargeLine> surcharges,
                                 long ticketTotal, long pickupTotal, long surchargeTotal, long totalAmount,
-                                long paidAmount, long remainingAmount, long minimumFirstPayment, int seats,
+                                long paidAmount, long remainingAmount, long minimumFirstPayment, long refundDue, int seats,
                                 LocalDateTime holdUntil, LocalDateTime createdAt,
-                                CancellationPolicyResponse cancellationPolicy, List<HistoryEntry> history) {
+                                CancellationPolicyResponse cancellationPolicy, List<PaymentResponse> payments, List<HistoryEntry> history) {
 
         /** @param minimumFirstPayment số tiền tối thiểu cần trả tiếp: tiền cọc nếu chưa trả gì, còn lại nếu đã trả */
         public static BookingDetail from(Booking b, long minimumFirstPayment) {
@@ -114,9 +118,10 @@ public final class BookingDtos {
                     b.getSurcharges().stream().map(s -> new SurchargeLine(s.getSurcharge().getId(), s.getName(), s.getMethod(),
                             s.getQuantity(), s.getUnitPrice(), s.getAmount())).toList(),
                     b.getTicketTotal(), b.getPickupTotal(), b.getSurchargeTotal(), b.getTotalAmount(),
-                    b.getPaidAmount(), b.remainingAmount(), minimumFirstPayment, b.getSeats(),
+                    b.getPaidAmount(), b.remainingAmount(), minimumFirstPayment, b.refundDue(), b.getSeats(),
                     b.getHoldUntil(), b.getCreatedAt(),
                     b.getCancellationPolicy() == null ? null : CancellationPolicyResponse.from(b.getCancellationPolicy()),
+                    b.getPayments().stream().map(PaymentResponse::from).toList(),
                     b.getHistory().stream().map(h -> new HistoryEntry(h.getFromStatus(), h.getToStatus(), h.getChangedAt(),
                             h.getChangedBy() == null ? null : h.getChangedBy().getFullName(), h.getReason())).toList());
         }
@@ -137,6 +142,17 @@ public final class BookingDtos {
                     Period.between(p.getBirthDate(), departureDate).getYears(), p.getGender(), p.getPhone(), p.getIdNumber(),
                     p.getPassengerType().getName(), p.getPrice(),
                     p.getPickupPoint() == null ? null : p.getPickupPoint().getName(), p.getPickupTime(), p.getPickupFee(), p.getStatus());
+        }
+    }
+
+    public record PaymentResponse(Long id, long amount, PaymentMethod method, PaymentStatus status, String reference,
+                                  String transactionNo, String bankCode, LocalDateTime paidAt, String confirmedBy,
+                                  String proofUrl, String note, LocalDateTime createdAt) {
+
+        static PaymentResponse from(Payment p) {
+            return new PaymentResponse(p.getId(), p.getAmount(), p.getMethod(), p.getStatus(), p.getReference(),
+                    p.getTransactionNo(), p.getBankCode(), p.getPaidAt(),
+                    p.getConfirmedBy() == null ? null : p.getConfirmedBy().getFullName(), p.getProofUrl(), p.getNote(), p.getCreatedAt());
         }
     }
 

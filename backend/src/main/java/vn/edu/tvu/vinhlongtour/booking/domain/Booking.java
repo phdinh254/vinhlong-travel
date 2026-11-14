@@ -77,6 +77,10 @@ public class Booking {
     @Column(nullable = false)
     private long paidAmount;
 
+    /** Số tiền giữ lại khi đơn bị hủy (phí phạt hủy). Đơn còn hiệu lực thì giữ lại toàn bộ tổng tiền. */
+    @Column(nullable = false)
+    private long cancellationFee;
+
     @Column(nullable = false)
     private int seats;
 
@@ -104,6 +108,10 @@ public class Booking {
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id")
     private List<BookingStatusHistory> history = new ArrayList<>();
+
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
+    @OrderBy("id")
+    private List<Payment> payments = new ArrayList<>();
 
     protected Booking() {
     }
@@ -154,6 +162,89 @@ public class Booking {
         if (target != BookingStatus.PENDING_PAYMENT) {
             this.holdUntil = null; // hạn giữ chỗ chỉ có nghĩa khi đang chờ thanh toán
         }
+    }
+
+    // ---------- Thanh toán ----------
+
+    /** Khách còn trả tiền được: đang giữ chỗ chưa quá hạn, hoặc đã cọc chưa trả đủ. */
+    public boolean isPayable(LocalDateTime now) {
+        return (status == BookingStatus.PENDING_PAYMENT && !isHoldExpired(now)) || status == BookingStatus.DEPOSITED;
+    }
+
+    /** Có link VNPay đang chờ được tạo sau thời điểm {@code since} (link VNPay còn hiệu lực). */
+    public boolean hasPendingOnlinePaymentSince(LocalDateTime since) {
+        return payments.stream().anyMatch(p -> p.isPending() && p.getCreatedAt().isAfter(since));
+    }
+
+    public Payment startOnlinePayment(long amount, LocalDateTime now) {
+        Payment payment = Payment.online(this, amount, now);
+        payments.add(payment);
+        return payment;
+    }
+
+    /** VNPay báo giao dịch thành công: cộng tiền vào đơn. */
+    public void confirmOnlinePayment(Payment payment, String transactionNo, String bankCode, LocalDateTime paidAt,
+                                     String rawResponse, LocalDateTime now) {
+        payment.markSucceeded(transactionNo, bankCode, paidAt, rawResponse);
+        receive(payment.getAmount(), null, "Thanh toán VNPay, mã giao dịch " + transactionNo, now);
+    }
+
+    public void failOnlinePayment(Payment payment, String rawResponse) {
+        payment.markFailed(rawResponse);
+    }
+
+    /** Admin xác nhận đã nhận tiền chuyển khoản/tiền mặt; không nhận quá số còn phải trả. */
+    public Payment recordManualPayment(long amount, PaymentMethod method, String transactionNo, String proofUrl,
+                                       String note, Account admin, LocalDateTime now) {
+        if (method == PaymentMethod.VNPAY) {
+            throw ApiException.badRequest("INVALID_METHOD", "Thanh toán VNPay được ghi nhận tự động, không xác nhận tay");
+        }
+        if (amount > remainingAmount()) {
+            throw ApiException.badRequest("AMOUNT_EXCEEDS_REMAINING", "Số tiền vượt quá số còn phải trả (" + remainingAmount() + "đ)");
+        }
+        Payment payment = Payment.manual(this, amount, method, transactionNo, proofUrl, note, admin, now);
+        payments.add(payment);
+        receive(amount, admin, "Xác nhận nhận tiền " + method + (transactionNo == null ? "" : ", mã " + transactionNo), now);
+        return payment;
+    }
+
+    /**
+     * Khôi phục đơn đã hết hạn giữ chỗ khi khách trả tiền trễ mà đợt vẫn còn chỗ
+     * (nơi gọi phải giữ lại chỗ trên đợt trước).
+     */
+    public void revive(Account actor, LocalDateTime now, LocalDateTime holdUntil) {
+        moveTo(BookingStatus.PENDING_PAYMENT, actor, "Khôi phục đơn do nhận tiền sau khi hết hạn giữ chỗ", now);
+        this.holdUntil = holdUntil;
+    }
+
+    /**
+     * Cộng tiền vào đơn. Đơn đang chờ/đã cọc thì chuyển trạng thái theo số tiền;
+     * đơn đã hủy/hết hạn/đã trả đủ thì chỉ ghi chú, và phần thừa hiện ở {@link #refundDue()}.
+     */
+    private void receive(long amount, Account actor, String reason, LocalDateTime now) {
+        paidAmount += amount;
+        if (status == BookingStatus.PENDING_PAYMENT || status == BookingStatus.DEPOSITED) {
+            BookingStatus target = paidAmount >= totalAmount ? BookingStatus.PAID : BookingStatus.DEPOSITED;
+            if (target != status) {
+                moveTo(target, actor, reason, now);
+                return;
+            }
+        }
+        note(actor, refundDue() > 0 ? reason + " - CẦN HOÀN " + refundDue() + "đ" : reason, now);
+    }
+
+    /** Ghi một dòng lịch sử mà không đổi trạng thái. */
+    public void note(Account actor, String reason, LocalDateTime now) {
+        history.add(new BookingStatusHistory(this, status, status, now, actor, reason));
+    }
+
+    /**
+     * Số tiền phải hoàn cho khách: phần đã thu vượt quá số được giữ lại
+     * (đơn hiệu lực giữ tổng tiền, đơn đã hủy/hết hạn chỉ giữ phí hủy).
+     */
+    public long refundDue() {
+        long keep = status.holdsSeats() || status == BookingStatus.COMPLETED ? totalAmount : cancellationFee;
+        return Math.max(0, paidAmount - keep);
     }
 
     /** Đơn chưa trả đồng nào và đã quá hạn giữ chỗ. */
@@ -256,5 +347,13 @@ public class Booking {
 
     public List<BookingStatusHistory> getHistory() {
         return List.copyOf(history);
+    }
+
+    public List<Payment> getPayments() {
+        return List.copyOf(payments);
+    }
+
+    public long getCancellationFee() {
+        return cancellationFee;
     }
 }

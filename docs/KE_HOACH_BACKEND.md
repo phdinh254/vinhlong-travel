@@ -73,7 +73,7 @@ Mỗi gói có `domain` (entity + enum), `repository`, `service`, `web` (control
 | **Đóng gói** | Entity tự giữ quy tắc. `Departure.reserveSeats(n)` tự kiểm tra còn chỗ, tự chuyển `SOLD_OUT`; `Booking.recordPayment(amount)` tự tính lại trạng thái. Service không sửa thẳng các trường số chỗ, số tiền. |
 | **Enum có hành vi** | `BookingStatus` khai báo bước chuyển hợp lệ (`PENDING_PAYMENT → DEPOSITED → PAID → COMPLETED`, …). Chuyển sai → lỗi ngay. |
 | **Đa hình (phụ thu)** | `SurchargeMethod` = `PER_PERSON`, `PER_BOOKING`, `PER_UNIT`, mỗi giá trị tự cài `quantity(...)`. |
-| **Trừu tượng (thanh toán)** | `interface PaymentGateway` với 2 cài đặt: `VnPayGateway` và `ManualPayment` (tiền mặt/chuyển khoản, admin xác nhận). |
+| **Thanh toán** | *Đã đổi khi làm giai đoạn 5:* không tạo `interface PaymentGateway` vì chỉ có VNPay là cổng thật (xác nhận thủ công do admin làm, không phải cổng). Interface chỉ một cài đặt là thừa; khi thêm cổng thứ hai (MoMo...) thì tách interface từ `VnPayGateway`. `Payment` thuộc đơn, mọi khoản tiền vào đi qua `Booking` khi đã khóa dòng đơn. |
 | **Đa hình (gợi ý lịch trình)** | `interface ScoringCriterion` với nhiều cài đặt (khớp sở thích, độ nổi bật, khu vực ưu tiên). `interface TravelTimeEstimator` để sau này thay cách tính đường đi mà không sửa thuật toán. |
 | **Value object** | `Money` (bọc `BigDecimal`, luôn làm tròn tới đồng), `AgeRange`, `GeoPoint`, `TimeWindow`. |
 
