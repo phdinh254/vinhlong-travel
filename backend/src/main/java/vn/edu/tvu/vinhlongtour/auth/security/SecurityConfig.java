@@ -7,6 +7,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -35,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(rs -> rs
+                        .bearerTokenResolver(ignoreTokenOnAuthEndpoints())
                         .authenticationEntryPoint(errors)
                         .accessDeniedHandler(errors)
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
@@ -50,6 +53,15 @@ public class SecurityConfig {
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Frontend thường gắn token đã lưu vào mọi request. Nếu token đó hết hạn mà vẫn bị kiểm tra
+     * ở API đăng nhập/đăng ký thì người dùng không đăng nhập lại được, nên bỏ qua token ở các API này.
+     */
+    private static BearerTokenResolver ignoreTokenOnAuthEndpoints() {
+        DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
+        return request -> request.getRequestURI().startsWith("/api/v1/auth/") ? null : resolver.resolve(request);
     }
 
     private static UrlBasedCorsConfigurationSource corsSource(AppProperties props) {

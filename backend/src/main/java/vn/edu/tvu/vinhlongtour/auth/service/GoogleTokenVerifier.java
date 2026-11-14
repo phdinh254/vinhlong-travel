@@ -51,7 +51,8 @@ public class GoogleTokenVerifier {
         }
         // Token Google cấp cho ứng dụng khác không được dùng để đăng nhập vào hệ thống này
         if (!GOOGLE_ISSUERS.contains(jwt.getClaimAsString(JwtClaimNames.ISS))
-                || jwt.getAudience() == null || !jwt.getAudience().contains(clientId)) {
+                || jwt.getAudience() == null || !jwt.getAudience().contains(clientId)
+                || jwt.getClaimAsString("email") == null) {
             throw invalidToken();
         }
         if (!Boolean.TRUE.equals(jwt.getClaimAsBoolean("email_verified"))) {

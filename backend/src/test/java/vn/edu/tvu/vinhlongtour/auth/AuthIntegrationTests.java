@@ -125,6 +125,26 @@ class AuthIntegrationTests {
     }
 
     @Test
+    void expiredTokenSentByFrontendDoesNotBlockLoggingInAgain() throws Exception {
+        String email = uniqueEmail();
+        long id = accountId(register(email, PASSWORD));
+        String expired = sign(new SecretKeySpec(TEST_SECRET.getBytes(StandardCharsets.UTF_8), "HmacSHA256"), id,
+                Instant.now().minus(3, ChronoUnit.HOURS));
+
+        mvc.perform(post("/api/v1/auth/login").header("Authorization", "Bearer " + expired).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, PASSWORD)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void emptyPhoneFromFormIsAccepted() throws Exception {
+        mvc.perform(post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"%s\",\"password\":\"%s\",\"fullName\":\"A\",\"phone\":\"\"}".formatted(uniqueEmail(), PASSWORD)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.account.phone").doesNotExist());
+    }
+
+    @Test
     void tokenSignedWithAnotherKeyIsRejected() throws Exception {
         long id = accountId(register(uniqueEmail(), PASSWORD));
         byte[] otherKey = new byte[32];

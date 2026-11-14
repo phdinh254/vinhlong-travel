@@ -45,6 +45,15 @@ class GoogleTokenVerifierTest {
     }
 
     @Test
+    void tokenWithoutEmailIsRejected() {
+        GoogleTokenVerifier verifier = new GoogleTokenVerifier(CLIENT_ID, token -> Jwt.withTokenValue(token)
+                .header("alg", "RS256").issuer("accounts.google.com").audience(List.of(CLIENT_ID))
+                .subject("google-123").claim("email_verified", true).build());
+
+        assertCode(() -> verifier.verify("token"), "INVALID_GOOGLE_TOKEN");
+    }
+
+    @Test
     void unverifiedEmailIsRejected() {
         GoogleTokenVerifier verifier = new GoogleTokenVerifier(CLIENT_ID, decoderReturning("accounts.google.com", CLIENT_ID, false));
 
