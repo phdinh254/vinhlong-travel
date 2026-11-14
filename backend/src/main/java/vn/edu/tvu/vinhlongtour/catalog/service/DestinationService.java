@@ -17,6 +17,7 @@ import vn.edu.tvu.vinhlongtour.catalog.repository.TourCategoryRepository;
 import vn.edu.tvu.vinhlongtour.catalog.web.CatalogDtos.DestinationRequest;
 import vn.edu.tvu.vinhlongtour.catalog.web.CatalogDtos.DestinationResponse;
 import vn.edu.tvu.vinhlongtour.common.ApiException;
+import vn.edu.tvu.vinhlongtour.common.Lookups;
 import vn.edu.tvu.vinhlongtour.common.PageResponse;
 
 import java.util.ArrayList;
@@ -113,15 +114,11 @@ public class DestinationService {
     }
 
     private Region region(Long id) {
-        return regions.findById(id).orElseThrow(() -> ApiException.badRequest("REGION_NOT_FOUND", "Khu vực không tồn tại"));
+        return Lookups.one(regions, id, "REGION_NOT_FOUND", "Khu vực không tồn tại");
     }
 
     private Set<TourCategory> categories(Set<Long> ids) {
-        List<TourCategory> found = categories.findAllById(ids);
-        if (found.size() != ids.size()) {
-            throw ApiException.badRequest("CATEGORY_NOT_FOUND", "Có loại hình không tồn tại");
-        }
-        return new HashSet<>(found);
+        return new HashSet<>(Lookups.all(categories, ids, "CATEGORY_NOT_FOUND", "Có loại hình không tồn tại"));
     }
 
     private Destination find(Long id) {

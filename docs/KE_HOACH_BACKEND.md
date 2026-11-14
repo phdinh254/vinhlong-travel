@@ -99,7 +99,7 @@ Sẽ vẽ **sơ đồ lớp** và **ERD** bằng draw.io để đưa vào báo c
 | PhuThu | `Surcharge` | |
 | ChinhSachHuy, MocPhatHuy | `CancellationPolicy`, `PenaltyTier` | Có phiên bản, chốt vào đơn lúc đặt |
 | Tour, HinhAnhTour | `Tour`, `TourImage` | Luôn đúng 1 ảnh đại diện |
-| NgayLichTrinh, HoatDongLichTrinh | `ItineraryDay`, `ItineraryActivity` | Thuộc tour (mẫu) hoặc thuộc đợt |
+| NgayLichTrinh, HoatDongLichTrinh | `Itinerary`, `ItineraryDay`, `ItineraryActivity` | `Itinerary` là bảng riêng: tour giữ lịch trình mẫu, đợt giữ bản sao tạo bằng `Itinerary.copy()` (mẫu Prototype) |
 | DotKhoiHanh, BangGiaDot | `Departure`, `DeparturePrice` | `Departure` có cột `version` |
 | DonDatTour, HanhKhach | `Booking`, `Passenger` | Giá chốt trên từng hành khách lúc đặt |
 | ChiTietPhuThuDon, LichSuTrangThaiDon | `BookingSurcharge`, `BookingStatusHistory` | |

@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/tours/{{tourId}}/itinerary"
+method: PUT
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "days": [
+        { "title": "Vĩnh Long", "activities": [
+          { "startTime": "08:00", "title": "Tham quan Văn Thánh Miếu", "destinationId": {{vl01Id}} },
+          { "startTime": "11:30", "title": "Ăn trưa" }
+        ] },
+        { "title": "Trà Vinh", "activities": [
+          { "startTime": "08:00", "title": "Dạo Ao Bà Om", "destinationId": {{tv01Id}} }
+        ] }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('Lịch trình 2 ngày', () => pm.expect(pm.response.json().itinerary.days.length).to.eql(2));
+    language: text/javascript
+order: 11000

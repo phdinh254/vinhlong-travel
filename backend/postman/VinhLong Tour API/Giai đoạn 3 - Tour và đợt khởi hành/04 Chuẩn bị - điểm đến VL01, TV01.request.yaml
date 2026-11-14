@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/destinations?size=100"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      const items = pm.response.json().items;
+      pm.collectionVariables.set('vl01Id', items.find(d => d.code === 'VL01').id);
+      pm.collectionVariables.set('tv01Id', items.find(d => d.code === 'TV01').id);
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 5000
