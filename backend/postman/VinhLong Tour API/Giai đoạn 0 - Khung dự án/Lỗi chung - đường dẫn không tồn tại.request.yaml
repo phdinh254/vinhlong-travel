@@ -4,10 +4,11 @@ method: GET
 scripts:
   - type: afterResponse
     code: |-
-      pm.test('Trả 404', () => pm.response.to.have.status(404));
+      // Từ giai đoạn 1, mọi API mặc định cần đăng nhập nên chưa có token sẽ nhận 401 trước khi xét đường dẫn
+      pm.test('Trả 401', () => pm.response.to.have.status(401));
       pm.test('Đúng dạng lỗi chung {code, message, fields}', () => {
         const body = pm.response.json();
-        pm.expect(body.code).to.eql('NOT_FOUND');
+        pm.expect(body.code).to.eql('UNAUTHORIZED');
         pm.expect(body).to.have.property('message');
         pm.expect(body).to.have.property('fields');
       });

@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{adminEmail}}",
+      "password": "{{adminPassword}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200 (cần điền biến adminPassword = ADMIN_PASSWORD của backend)', () => pm.response.to.have.status(200));
+      pm.test('Vai trò ADMIN', () => pm.expect(pm.response.json().account.role).to.eql('ADMIN'));
+      pm.collectionVariables.set('adminToken', pm.response.json().token);
+    language: text/javascript
+order: 10000
