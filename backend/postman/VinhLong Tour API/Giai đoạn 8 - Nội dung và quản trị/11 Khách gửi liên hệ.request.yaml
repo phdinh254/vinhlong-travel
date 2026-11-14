@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/contact-messages"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "Trần Văn L",
+      "phone": "0909888777",
+      "subject": "Tư vấn tour",
+      "message": "Nhóm 10 người, có người lớn tuổi"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('contactId', pm.response.json().id);
+    language: text/javascript
+order: 12000

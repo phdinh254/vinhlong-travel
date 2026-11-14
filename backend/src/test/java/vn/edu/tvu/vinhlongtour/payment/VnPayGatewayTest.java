@@ -25,7 +25,7 @@ class VnPayGatewayTest {
     private static VnPayGateway gateway(String secret) {
         return new VnPayGateway(new AppProperties(null, null, null, null, null, new AppProperties.VnPay(
                 "TESTTMN1", secret, "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
-                "http://localhost:5173/thanh-toan/ket-qua", Duration.ofMinutes(15), true)));
+                "http://localhost:5173/thanh-toan/ket-qua", Duration.ofMinutes(15), true), null));
     }
 
     @Test

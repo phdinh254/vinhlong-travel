@@ -39,6 +39,11 @@ class GlobalExceptionHandlerTest {
             throw new IllegalStateException("bí mật nội bộ");
         }
 
+        @GetMapping("/too-large")
+        void tooLarge() {
+            throw new org.springframework.web.multipart.MaxUploadSizeExceededException(5 * 1024 * 1024);
+        }
+
         @PostMapping("/validate")
         void validate(@Valid @RequestBody SampleInput input) {
         }
@@ -70,6 +75,13 @@ class GlobalExceptionHandlerTest {
         mvc.perform(post("/validate").contentType(MediaType.APPLICATION_JSON).content("{hỏng"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+    }
+
+    @Test
+    void oversizedUploadIsExplained() throws Exception {
+        mvc.perform(get("/too-large"))
+                .andExpect(status().isPayloadTooLarge())
+                .andExpect(jsonPath("$.code").value("FILE_TOO_LARGE"));
     }
 
     @Test

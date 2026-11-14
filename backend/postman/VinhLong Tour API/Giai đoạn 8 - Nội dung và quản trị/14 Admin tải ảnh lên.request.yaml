@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/uploads"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+body:
+  type: formdata
+  content:
+    - type: file
+      key: file
+      src: backend/postman/fixtures/anh-mau.png
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      const u = pm.response.json().url;
+      pm.test('Trả đường dẫn /uploads/...png', () => pm.expect(u).to.match(/^\/uploads\/[0-9a-f-]+\.png$/));
+      pm.collectionVariables.set('uploadUrl', u);
+    language: text/javascript
+order: 15000

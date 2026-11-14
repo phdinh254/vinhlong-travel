@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.LinkedHashMap;
@@ -64,6 +65,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             fields.putIfAbsent(e.getField(), e.getDefaultMessage());
         }
         return ResponseEntity.badRequest().body(new ApiError("VALIDATION_FAILED", "Dữ liệu gửi lên không hợp lệ", fields));
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex, HttpHeaders headers,
+                                                                          HttpStatusCode status, WebRequest request) {
+        return ResponseEntity.status(status).body(new ApiError("FILE_TOO_LARGE", "Ảnh tải lên tối đa 5 MB"));
     }
 
     @Override

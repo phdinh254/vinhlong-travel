@@ -1,0 +1,20 @@
+$kind: http-request
+name: "09 Link cấu hình chứa javascript:"
+url: "{{baseUrl}}/api/v1/admin/site-settings"
+method: PUT
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "MAP_EMBED_URL": "javascript:alert(1)"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 400', () => pm.response.to.have.status(400));
+      pm.test('code = INVALID_LINK', () => pm.expect(pm.response.json().code).to.eql('INVALID_LINK'));
+    language: text/javascript
+order: 10000

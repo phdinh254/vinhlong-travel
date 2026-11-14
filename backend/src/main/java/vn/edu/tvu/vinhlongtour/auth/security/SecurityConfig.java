@@ -35,10 +35,10 @@ public class SecurityConfig {
             "/api/v1/surcharges", "/api/v1/cancellation-policies/current", "/api/v1/destinations", "/api/v1/destinations/*",
             "/api/v1/tours", "/api/v1/tours/*", "/api/v1/tours/*/departures", "/api/v1/departures/*", "/api/v1/departures/*/itinerary",
             "/api/v1/bookings/lookup", "/api/v1/payments/vnpay/return", "/api/v1/payments/vnpay/ipn",
-            "/api/v1/itineraries/lodging-presets"};
+            "/api/v1/itineraries/lodging-presets", "/api/v1/articles", "/api/v1/articles/*", "/api/v1/site-settings", "/uploads/**"};
 
     /** API ghi mà khách vãng lai cũng gọi được, không cần biết ai gọi. */
-    private static final String[] PUBLIC_POST = {"/api/v1/bookings/quote", "/api/v1/itineraries/suggest"};
+    private static final String[] PUBLIC_POST = {"/api/v1/bookings/quote", "/api/v1/itineraries/suggest", "/api/v1/contact-messages"};
 
     /** API ghi khách vãng lai gọi được; nếu có token hợp lệ thì biết là khách nào (đơn gắn với tài khoản). */
     private static final String[] OPTIONAL_LOGIN_POST = {"/api/v1/bookings", "/api/v1/payments/vnpay", "/api/v1/bookings/*/cancellation-requests"};

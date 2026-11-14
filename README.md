@@ -3,7 +3,7 @@
 Đồ án môn **Lập trình ứng dụng hướng đối tượng**: website giới thiệu du lịch, đặt tour và gợi ý lịch trình cho khách du lịch tỉnh Vĩnh Long mới (khu vực Vĩnh Long, Bến Tre, Trà Vinh cũ).
 
 > **Đang xây dựng lại backend** trên nhánh `hoanglong`, theo kế hoạch ở [`docs/KE_HOACH_BACKEND.md`](docs/KE_HOACH_BACKEND.md).
-> Hiện xong **giai đoạn 7** (tài khoản, đăng nhập; danh mục và 38 điểm đến; tour, lịch trình, đợt khởi hành; đặt tour, giữ chỗ; thanh toán VNPay và xác nhận thủ công; hủy tour, hoàn tiền, chuyển đợt; gợi ý lịch trình bằng thuật toán ILS và lưu lịch trình). Frontend vẫn gọi API của bản cũ nên chưa chạy cùng backend mới; bảng đối chiếu API cũ → mới sẽ có ở `docs/API_CHANGES.md` (giai đoạn 9).
+> Hiện xong **giai đoạn 8** (tài khoản, đăng nhập; danh mục và 38 điểm đến; tour, lịch trình, đợt khởi hành; đặt tour, giữ chỗ; thanh toán VNPay và xác nhận thủ công; hủy tour, hoàn tiền, chuyển đợt; gợi ý lịch trình bằng thuật toán ILS và lưu lịch trình; tin tức, cấu hình trang, liên hệ, upload ảnh, dashboard). Frontend vẫn gọi API của bản cũ nên chưa chạy cùng backend mới; bảng đối chiếu API cũ → mới sẽ có ở `docs/API_CHANGES.md` (giai đoạn 9).
 
 | Thành phần | Công nghệ |
 |---|---|
@@ -72,6 +72,7 @@ Cấu hình qua biến môi trường:
 | `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET` | *trống* | Mã website và khóa bí mật VNPay (đăng ký sandbox tại https://sandbox.vnpayment.vn/devreg/). Để trống thì tạo link thanh toán báo `VNPAY_NOT_CONFIGURED` |
 | `VNPAY_RETURN_URL` | `http://localhost:5173/thanh-toan/ket-qua` | Trang frontend VNPay đưa khách về; trang này gọi `GET /api/v1/payments/vnpay/return` kèm nguyên chuỗi tham số VNPay |
 | `VNPAY_PROCESS_ON_RETURN` | `true` | Ghi nhận kết quả ngay ở trang kết quả (dữ liệu có chữ ký nên tin được). Cần khi chạy localhost vì VNPay không gọi IPN vào máy cá nhân được. Khi có tên miền thật, khai báo IPN URL `https://<backend>/api/v1/payments/vnpay/ipn` trên cổng VNPay |
+| `UPLOAD_DIR` | `uploads` (trong thư mục `backend`) | Nơi lưu ảnh admin tải lên, phục vụ ở `http://localhost:8081/uploads/<tên file>`. Chỉ nhận JPEG, PNG, GIF, WebP, tối đa 5 MB |
 | `SERVER_PORT`, `DB_URL`, `DB_USER`, `DB_PASSWORD` | khớp `docker-compose.yml` | Cổng backend và kết nối CSDL |
 
 Nếu cổng 5432 đã bị chiếm, chạy `DB_PORT=5433 docker compose up -d` và đặt `DB_URL=jdbc:postgresql://localhost:5433/vinhlongtour`.

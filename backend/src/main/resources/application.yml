@@ -9,6 +9,10 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/vinhlongtour}
     username: ${DB_USER:vinhlong}
     password: ${DB_PASSWORD:vinhlong}
+  servlet:
+    multipart:
+      max-file-size: 5MB      # Ảnh tải lên tối đa 5 MB
+      max-request-size: 6MB
   jpa:
     open-in-view: false
     hibernate:
@@ -38,3 +42,5 @@ app:
     return-url: ${VNPAY_RETURN_URL:http://localhost:5173/thanh-toan/ket-qua}
     link-timeout: 15m        # Link thanh toán VNPay hết hạn sau 15 phút
     process-on-return: ${VNPAY_PROCESS_ON_RETURN:true}
+  upload:
+    dir: ${UPLOAD_DIR:uploads}   # Thư mục lưu ảnh tải lên (đã có trong .gitignore)
