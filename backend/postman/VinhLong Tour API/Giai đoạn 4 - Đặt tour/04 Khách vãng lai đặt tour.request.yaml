@@ -1,0 +1,32 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/bookings"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "departureId": {{bookDepartureId}},
+      "contactName": "Nguyễn Văn A",
+      "contactPhone": "0901234567",
+      "contactEmail": "a@test.vn",
+      "passengers": [
+        { "fullName": "Nguyễn Văn A", "birthDate": "1990-01-01" },
+        { "fullName": "Nguyễn Văn Bé", "birthDate": "{{childBirthDate}}" }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      const b = pm.response.json();
+      pm.test('Đơn đang giữ chỗ, mã dạng VLyyMMddXXXXX', () => {
+        pm.expect(b.status).to.eql('PENDING_PAYMENT');
+        pm.expect(b.code).to.match(/^VL\d{6}[A-Z2-9]{5}$/);
+        pm.expect(b.holdUntil).to.be.a('string');
+      });
+      pm.collectionVariables.set('guestBookingCode', b.code);
+      pm.collectionVariables.set('guestBookingId', b.id);
+    language: text/javascript
+order: 5000

@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/bookings/{{guestBookingId}}/status"
+method: PATCH
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "status": "CANCELLED",
+      "reason": "Khách báo không đi"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const b = pm.response.json();
+      pm.test('Đã hủy, lịch sử ghi người hủy và lý do', () => {
+        pm.expect(b.status).to.eql('CANCELLED');
+        const last = b.history[b.history.length - 1];
+        pm.expect(last.toStatus).to.eql('CANCELLED');
+        pm.expect(last.reason).to.eql('Khách báo không đi');
+      });
+    language: text/javascript
+order: 15000

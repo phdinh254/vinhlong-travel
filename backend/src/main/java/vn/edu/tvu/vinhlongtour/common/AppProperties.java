@@ -10,7 +10,10 @@ import java.util.List;
  * phần lớn đọc từ biến môi trường để không phải ghi bí mật vào mã nguồn.
  */
 @ConfigurationProperties("app")
-public record AppProperties(Jwt jwt, Admin admin, Google google, Cors cors) {
+public record AppProperties(Jwt jwt, Admin admin, Google google, Cors cors, Booking booking) {
+
+    /** Thời gian giữ chỗ khi chưa thanh toán, và phần trăm đặt cọc tối thiểu. */
+    public record Booking(Duration hold, int depositPercent) {}
 
     /** Khóa ký token đăng nhập và thời gian sống của token. */
     public record Jwt(String secret, Duration ttl) {}

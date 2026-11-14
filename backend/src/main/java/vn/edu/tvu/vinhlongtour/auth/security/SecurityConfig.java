@@ -33,7 +33,11 @@ public class SecurityConfig {
     private static final String[] PUBLIC_GET = {
             "/api/v1/regions", "/api/v1/tour-categories", "/api/v1/amenities", "/api/v1/passenger-types",
             "/api/v1/surcharges", "/api/v1/cancellation-policies/current", "/api/v1/destinations", "/api/v1/destinations/*",
-            "/api/v1/tours", "/api/v1/tours/*", "/api/v1/tours/*/departures", "/api/v1/departures/*", "/api/v1/departures/*/itinerary"};
+            "/api/v1/tours", "/api/v1/tours/*", "/api/v1/tours/*/departures", "/api/v1/departures/*", "/api/v1/departures/*/itinerary",
+            "/api/v1/bookings/lookup"};
+
+    /** API ghi mà khách vãng lai cũng gọi được, không cần biết ai gọi. */
+    private static final String[] PUBLIC_POST = {"/api/v1/bookings/quote"};
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, AccountJwtConverter jwtConverter,
@@ -45,6 +49,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET).permitAll()
+                        .requestMatchers(HttpMethod.POST, PUBLIC_POST).permitAll()
+                        // Đặt tour: khách vãng lai đặt được; nếu có token hợp lệ thì đơn gắn với tài khoản
+                        .requestMatchers(HttpMethod.POST, "/api/v1/bookings").permitAll()
                         .requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/error").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
@@ -78,6 +85,9 @@ public class SecurityConfig {
         publicApi.add(paths.matcher("/api/v1/auth/**"));
         for (String pattern : PUBLIC_GET) {
             publicApi.add(paths.matcher(HttpMethod.GET, pattern));
+        }
+        for (String pattern : PUBLIC_POST) {
+            publicApi.add(paths.matcher(HttpMethod.POST, pattern));
         }
         RequestMatcher matcher = new OrRequestMatcher(publicApi);
         DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
