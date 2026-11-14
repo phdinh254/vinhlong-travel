@@ -29,7 +29,7 @@ public final class ContentDtos {
             @Size(max = 200) @Pattern(regexp = "^$|^[a-z0-9]+(-[a-z0-9]+)*$", message = "chỉ gồm chữ thường không dấu, số và gạch ngang") String slug,
             @Size(max = 500) String summary,
             @NotBlank @Size(max = 200_000) String content,
-            @Size(max = 500) @Pattern(regexp = "^$|^(https?://|/uploads/).+", message = "đường dẫn ảnh không hợp lệ") String coverImageUrl,
+            @Size(max = 500) @Pattern(regexp = "^$|^(https?://|/uploads/|/images/).+", message = "đường dẫn ảnh không hợp lệ") String coverImageUrl,
             @NotNull ArticleCategory category,
             @NotNull ArticleStatus status) {}
 

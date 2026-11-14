@@ -1,11 +1,12 @@
 $kind: collection
 description: |-
   Bộ request kiểm thử backend VinhLong Tour. Mỗi giai đoạn thêm một thư mục mới.
-  Chạy cả collection theo thứ tự (Run). Biến `adminPassword` phải khớp ADMIN_PASSWORD đã đặt khi chạy backend.
-  Biến `vnpHashSecret` phải khớp VNPAY_HASH_SECRET của backend (giai đoạn 5 tự ký dữ liệu để giả lập VNPay).
+  Chạy cả collection theo thứ tự (Run). Giá trị sẵn có của `adminPassword` và `vnpHashSecret` khớp profile `dev`
+  (chỉ dùng trên máy cá nhân). Chạy backend với mật khẩu/khóa khác thì sửa hai biến này cho khớp
+  ADMIN_PASSWORD và VNPAY_HASH_SECRET (giai đoạn 5 tự ký dữ liệu để giả lập VNPay).
   Đổi biến `baseUrl` nếu backend không chạy ở cổng 8081.
 variables:
   baseUrl: http://localhost:8081
   adminEmail: admin@vinhlongtour.vn
-  adminPassword: ""
-  vnpHashSecret: ""
+  adminPassword: Admin@12345
+  vnpHashSecret: KHOA-VNPAY-GIA-CHI-DUNG-TREN-MAY-DEV
