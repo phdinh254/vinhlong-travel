@@ -1,5 +1,6 @@
 package vn.edu.tvu.vinhlongtour.booking.service;
 
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -127,7 +128,8 @@ public class BookingService {
     // ---------- Admin ----------
 
     @Transactional(readOnly = true)
-    public PageResponse<BookingSummary> search(String q, BookingStatus status, Long tourId, Long departureId, int page, int size) {
+    public PageResponse<BookingSummary> search(String q, BookingStatus status, Long tourId, Long departureId, boolean needsRefund,
+                                               int page, int size) {
         Specification<Booking> spec = (root, query, cb) -> {
             List<Predicate> where = new ArrayList<>();
             if (q != null && !q.isBlank()) {
@@ -143,6 +145,14 @@ public class BookingService {
             }
             if (tourId != null) {
                 where.add(cb.equal(root.get("departure").get("tour").get("id"), tourId));
+            }
+            if (needsRefund) {
+                // Cùng công thức với Booking.refundDue(): đã thu nhiều hơn số được giữ lại
+                Expression<Long> keep = cb.<Long>selectCase()
+                        .when(root.get("status").in(BookingStatus.PENDING_PAYMENT, BookingStatus.DEPOSITED, BookingStatus.PAID,
+                                BookingStatus.COMPLETED), root.<Long>get("totalAmount"))
+                        .otherwise(root.<Long>get("cancellationFee"));
+                where.add(cb.gt(root.<Long>get("paidAmount"), keep));
             }
             return cb.and(where.toArray(Predicate[]::new));
         };
@@ -232,7 +242,8 @@ public class BookingService {
         throw new IllegalStateException("Không sinh được mã đơn sau 10 lần thử");
     }
 
-    private BookingDetail detail(Booking b) {
+    /** Chi tiết đơn kèm số tiền tối thiểu cần trả tiếp (tiền cọc nếu chưa trả gì, còn lại nếu đã trả một phần). */
+    public BookingDetail detail(Booking b) {
         long next = b.getPaidAmount() == 0 ? calculator.deposit(b.getTotalAmount()) : b.remainingAmount();
         return BookingDetail.from(b, next);
     }

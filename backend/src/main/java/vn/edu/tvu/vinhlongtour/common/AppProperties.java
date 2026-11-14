@@ -10,7 +10,13 @@ import java.util.List;
  * phần lớn đọc từ biến môi trường để không phải ghi bí mật vào mã nguồn.
  */
 @ConfigurationProperties("app")
-public record AppProperties(Jwt jwt, Admin admin, Google google, Cors cors, Booking booking) {
+public record AppProperties(Jwt jwt, Admin admin, Google google, Cors cors, Booking booking, VnPay vnpay) {
+
+    /**
+     * Cấu hình cổng VNPay. {@code processOnReturn}: ghi nhận kết quả ngay khi khách quay về trang kết quả
+     * (dữ liệu có chữ ký VNPay nên tin được), cần khi chạy localhost vì VNPay không gọi IPN vào máy cá nhân được.
+     */
+    public record VnPay(String tmnCode, String hashSecret, String payUrl, String returnUrl, Duration linkTimeout, boolean processOnReturn) {}
 
     /** Thời gian giữ chỗ khi chưa thanh toán, và phần trăm đặt cọc tối thiểu. */
     public record Booking(Duration hold, int depositPercent) {}

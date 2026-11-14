@@ -21,7 +21,7 @@ class AccountServiceTest {
 
     private final AccountRepository accounts = mock(AccountRepository.class);
     private final AppProperties props = new AppProperties(null,
-            new AppProperties.Admin("Admin@VinhLong.vn", "Admin@12345"), null, null, null);
+            new AppProperties.Admin("Admin@VinhLong.vn", "Admin@12345"), null, null, null, null);
     private final AccountService service = new AccountService(accounts, mock(PasswordEncoder.class),
             mock(JwtService.class), mock(GoogleTokenVerifier.class), props);
 

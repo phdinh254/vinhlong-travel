@@ -34,10 +34,13 @@ public class SecurityConfig {
             "/api/v1/regions", "/api/v1/tour-categories", "/api/v1/amenities", "/api/v1/passenger-types",
             "/api/v1/surcharges", "/api/v1/cancellation-policies/current", "/api/v1/destinations", "/api/v1/destinations/*",
             "/api/v1/tours", "/api/v1/tours/*", "/api/v1/tours/*/departures", "/api/v1/departures/*", "/api/v1/departures/*/itinerary",
-            "/api/v1/bookings/lookup"};
+            "/api/v1/bookings/lookup", "/api/v1/payments/vnpay/return", "/api/v1/payments/vnpay/ipn"};
 
     /** API ghi mà khách vãng lai cũng gọi được, không cần biết ai gọi. */
     private static final String[] PUBLIC_POST = {"/api/v1/bookings/quote"};
+
+    /** API ghi khách vãng lai gọi được; nếu có token hợp lệ thì biết là khách nào (đơn gắn với tài khoản). */
+    private static final String[] OPTIONAL_LOGIN_POST = {"/api/v1/bookings", "/api/v1/payments/vnpay"};
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, AccountJwtConverter jwtConverter,
@@ -50,8 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET).permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_POST).permitAll()
-                        // Đặt tour: khách vãng lai đặt được; nếu có token hợp lệ thì đơn gắn với tài khoản
-                        .requestMatchers(HttpMethod.POST, "/api/v1/bookings").permitAll()
+                        .requestMatchers(HttpMethod.POST, OPTIONAL_LOGIN_POST).permitAll()
                         .requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/error").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())

@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/bookings/{{payBookingId}}/payments"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "amount": {{tooMuch}},
+      "method": "BANK_TRANSFER",
+      "transactionNo": "CK001"
+    }
+scripts:
+  - type: beforeRequest
+    code: pm.collectionVariables.set('tooMuch', Number(pm.collectionVariables.get('payRemaining')) + 1);
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 400', () => pm.response.to.have.status(400));
+      pm.test('code = AMOUNT_EXCEEDS_REMAINING', () => pm.expect(pm.response.json().code).to.eql('AMOUNT_EXCEEDS_REMAINING'));
+    language: text/javascript
+order: 11000
