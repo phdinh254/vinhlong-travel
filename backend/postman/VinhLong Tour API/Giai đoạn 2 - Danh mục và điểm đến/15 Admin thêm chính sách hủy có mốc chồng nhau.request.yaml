@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/cancellation-policies"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Chính sách sai",
+      "effectiveFrom": "2030-01-01",
+      "tiers": [
+        { "daysBeforeFrom": 0, "daysBeforeTo": 5, "penaltyPercent": 100 },
+        { "daysBeforeFrom": 5, "daysBeforeTo": 10, "penaltyPercent": 50 }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 400', () => pm.response.to.have.status(400));
+      pm.test('code = INVALID_PENALTY_TIERS', () => pm.expect(pm.response.json().code).to.eql('INVALID_PENALTY_TIERS'));
+    language: text/javascript
+order: 16000

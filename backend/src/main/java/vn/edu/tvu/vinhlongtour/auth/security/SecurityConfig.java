@@ -2,6 +2,7 @@ package vn.edu.tvu.vinhlongtour.auth.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -10,10 +11,14 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import vn.edu.tvu.vinhlongtour.common.AppProperties;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,6 +29,11 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
+    /** API chỉ đọc mà khách chưa đăng nhập cũng xem được (danh mục, điểm đến, chính sách). */
+    private static final String[] PUBLIC_GET = {
+            "/api/v1/regions", "/api/v1/tour-categories", "/api/v1/amenities", "/api/v1/passenger-types",
+            "/api/v1/surcharges", "/api/v1/cancellation-policies/current", "/api/v1/destinations", "/api/v1/destinations/*"};
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, AccountJwtConverter jwtConverter,
                                             SecurityErrorHandler errors, AppProperties props) throws Exception {
@@ -33,11 +43,12 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, PUBLIC_GET).permitAll()
                         .requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/error").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(rs -> rs
-                        .bearerTokenResolver(ignoreTokenOnAuthEndpoints())
+                        .bearerTokenResolver(ignoreTokenOnPublicApi())
                         .authenticationEntryPoint(errors)
                         .accessDeniedHandler(errors)
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
@@ -57,11 +68,19 @@ public class SecurityConfig {
 
     /**
      * Frontend thường gắn token đã lưu vào mọi request. Nếu token đó hết hạn mà vẫn bị kiểm tra
-     * ở API đăng nhập/đăng ký thì người dùng không đăng nhập lại được, nên bỏ qua token ở các API này.
+     * ở API đăng nhập hay API công khai thì người dùng không đăng nhập lại được, không xem được trang,
+     * nên bỏ qua token ở các API này.
      */
-    private static BearerTokenResolver ignoreTokenOnAuthEndpoints() {
+    private static BearerTokenResolver ignoreTokenOnPublicApi() {
+        PathPatternRequestMatcher.Builder paths = PathPatternRequestMatcher.withDefaults();
+        List<RequestMatcher> publicApi = new ArrayList<>();
+        publicApi.add(paths.matcher("/api/v1/auth/**"));
+        for (String pattern : PUBLIC_GET) {
+            publicApi.add(paths.matcher(HttpMethod.GET, pattern));
+        }
+        RequestMatcher matcher = new OrRequestMatcher(publicApi);
         DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
-        return request -> request.getRequestURI().startsWith("/api/v1/auth/") ? null : resolver.resolve(request);
+        return request -> matcher.matches(request) ? null : resolver.resolve(request);
     }
 
     private static UrlBasedCorsConfigurationSource corsSource(AppProperties props) {

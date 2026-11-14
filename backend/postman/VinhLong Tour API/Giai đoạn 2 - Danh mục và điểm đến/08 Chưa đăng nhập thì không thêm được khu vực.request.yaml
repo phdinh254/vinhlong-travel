@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/regions"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Khu lạ"
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('Trả 401', () => pm.response.to.have.status(401));
+    language: text/javascript
+order: 9000

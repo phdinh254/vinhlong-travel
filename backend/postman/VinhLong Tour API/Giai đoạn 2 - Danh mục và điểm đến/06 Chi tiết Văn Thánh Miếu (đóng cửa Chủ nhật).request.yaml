@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/destinations/{{destinationVL01Id}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const d = pm.response.json();
+      pm.test('Giờ mở cửa 08:00, đóng cửa Chủ nhật', () => {
+        pm.expect(d.openTime).to.eql('08:00:00');
+        pm.expect(d.closedDays).to.eql(['SUNDAY']);
+      });
+    language: text/javascript
+order: 7000
