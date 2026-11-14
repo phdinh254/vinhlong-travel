@@ -30,6 +30,9 @@ logs/
 *.sql.gz
 *.bak
 graphify-out/
-.claude/settings.local.json
+# Công cụ cá nhân (Claude Code, liên kết workspace Postman): mỗi máy tự cấu hình, không đưa lên git
+.claude/
+.postman/
+/postman/
 __pycache__/
 *.pyc
