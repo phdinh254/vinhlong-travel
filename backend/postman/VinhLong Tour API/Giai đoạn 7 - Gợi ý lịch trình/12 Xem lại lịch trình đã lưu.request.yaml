@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/me/itineraries/{{tripId}}"
+method: GET
+headers:
+  Authorization: Bearer {{tripToken}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const t = pm.response.json();
+      pm.test('Có cả tham số lúc gợi ý và lịch chi tiết', () => { pm.expect(t.request.pace).to.eql('MODERATE'); pm.expect(t.plan.dayPlans.length).to.eql(2); });
+    language: text/javascript
+order: 13000

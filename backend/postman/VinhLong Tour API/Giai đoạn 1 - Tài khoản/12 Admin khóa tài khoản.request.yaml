@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/accounts/{{customerId}}/status"
+method: PATCH
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "status": "LOCKED"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('Trạng thái LOCKED', () => pm.expect(pm.response.json().status).to.eql('LOCKED'));
+    language: text/javascript
+order: 12000

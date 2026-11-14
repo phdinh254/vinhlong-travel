@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/destinations?size=100"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const seeded = pm.response.json().items.filter(d => /^(VL|BT|TV)\d\d$/.test(d.code));
+      pm.test('Đủ 38 điểm đến', () => pm.expect(seeded.length).to.eql(38));
+      pm.collectionVariables.set('destinationVL01Id', seeded.find(d => d.code === 'VL01').id);
+    language: text/javascript
+order: 4000

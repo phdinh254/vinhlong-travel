@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/me/bookings"
+method: GET
+headers:
+  Authorization: Bearer {{bookerToken}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('Có đơn vừa đặt', () => pm.expect(pm.response.json()[0].code).to.eql(pm.collectionVariables.get('memberBookingCode')));
+    language: text/javascript
+order: 11000

@@ -1,0 +1,39 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/itineraries/suggest"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "startDate": "{{tripStart}}",
+      "days": 2,
+      "pace": "MODERATE",
+      "lodging": "VINH_LONG_CENTER",
+      "adults": 2,
+      "children": 1,
+      "budget": 2000000,
+      "categoryIds": [{{cultureId}}]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const p = pm.response.json();
+      pm.test('Đủ 2 ngày, có điểm tham quan', () => { pm.expect(p.dayPlans.length).to.eql(2); pm.expect(p.totalScore).to.be.above(0); });
+      pm.test('Mỗi ngày ăn trưa đúng 1 lần trong 11:00–13:30, về trước 17:30', () => p.dayPlans.forEach(d => {
+        const lunch = d.stops.filter(s => s.type === 'LUNCH');
+        pm.expect(lunch.length).to.eql(1);
+        pm.expect(lunch[0].start >= '11:00' && lunch[0].start <= '13:30').to.eql(true);
+        pm.expect(d.returnAt <= '17:30').to.eql(true);
+      }));
+      pm.test('Không ghé một điểm hai lần, không vượt ngân sách', () => {
+        const ids = p.dayPlans.flatMap(d => d.stops).filter(s => s.type === 'VISIT').map(s => s.destinationId);
+        pm.expect(new Set(ids).size).to.eql(ids.length);
+        pm.expect(p.estimatedCost).to.be.at.most(2000000);
+      });
+      pm.collectionVariables.set('tripPlanJson', JSON.stringify(p.dayPlans));
+      pm.collectionVariables.set('tripScore', p.totalScore);
+    language: text/javascript
+order: 3000

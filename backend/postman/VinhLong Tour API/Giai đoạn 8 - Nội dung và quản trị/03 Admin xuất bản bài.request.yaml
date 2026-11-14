@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/articles/{{articleId}}"
+method: PUT
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "{{articleTitle}}",
+      "slug": null,
+      "summary": "Lễ hội lớn nhất năm của đồng bào Khmer",
+      "content": "<p>Đua ghe Ngo trên sông, thả đèn nước, cúng trăng.</p>",
+      "coverImageUrl": "",
+      "category": "EVENT",
+      "status": "PUBLISHED"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const a = pm.response.json();
+      pm.test('Giữ slug cũ, có ngày xuất bản', () => { pm.expect(a.slug).to.eql(pm.collectionVariables.get('articleSlug')); pm.expect(a.publishedAt).to.be.a('string'); });
+    language: text/javascript
+order: 4000

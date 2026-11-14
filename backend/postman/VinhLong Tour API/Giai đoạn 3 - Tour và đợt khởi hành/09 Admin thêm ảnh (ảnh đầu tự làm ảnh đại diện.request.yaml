@@ -1,0 +1,27 @@
+$kind: http-request
+name: 09 Admin thêm ảnh (ảnh đầu tự làm ảnh đại diện)
+url: "{{baseUrl}}/api/v1/admin/tours/{{tourId}}/images"
+method: PUT
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "images": [
+        { "url": "/uploads/van-thanh-mieu.jpg", "caption": "Văn Thánh Miếu" },
+        { "url": "/uploads/ao-ba-om.jpg", "caption": "Ao Bà Om" }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const images = pm.response.json().images;
+      pm.test('Đúng một ảnh đại diện, là ảnh đầu tiên', () => {
+        pm.expect(images.filter(i => i.cover).length).to.eql(1);
+        pm.expect(images[0].cover).to.eql(true);
+      });
+    language: text/javascript
+order: 10000

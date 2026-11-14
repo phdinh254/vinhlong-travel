@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/amenities"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "{{amenityName}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: pm.collectionVariables.set('amenityName', 'Xe đưa đón ' + Date.now());
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('amenityId', pm.response.json().id);
+    language: text/javascript
+order: 6000

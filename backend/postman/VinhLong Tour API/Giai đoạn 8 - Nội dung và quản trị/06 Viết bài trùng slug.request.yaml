@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/articles"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "{{articleTitle}}",
+      "slug": "{{articleSlug}}",
+      "summary": "Lễ hội lớn nhất năm của đồng bào Khmer",
+      "content": "<p>Đua ghe Ngo trên sông, thả đèn nước, cúng trăng.</p>",
+      "coverImageUrl": "",
+      "category": "EVENT",
+      "status": "DRAFT"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 409', () => pm.response.to.have.status(409));
+      pm.test('code = SLUG_TAKEN', () => pm.expect(pm.response.json().code).to.eql('SLUG_TAKEN'));
+    language: text/javascript
+order: 7000

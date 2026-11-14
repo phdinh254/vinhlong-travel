@@ -1,0 +1,30 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/articles"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "{{articleTitle}}",
+      "slug": null,
+      "summary": "Lễ hội lớn nhất năm của đồng bào Khmer",
+      "content": "<p>Đua ghe Ngo trên sông, thả đèn nước, cúng trăng.</p>",
+      "coverImageUrl": "",
+      "category": "EVENT",
+      "status": "DRAFT"
+    }
+scripts:
+  - type: beforeRequest
+    code: pm.collectionVariables.set('articleTitle', 'Lễ hội Ok Om Bok ' + Date.now());
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      const a = pm.response.json();
+      pm.test('Slug tự tạo từ tiêu đề tiếng Việt, chưa có ngày xuất bản', () => { pm.expect(a.slug).to.match(/^le-hoi-ok-om-bok-\d+$/); pm.expect(a.publishedAt).to.eql(null); });
+      pm.collectionVariables.set('articleId', a.id); pm.collectionVariables.set('articleSlug', a.slug);
+    language: text/javascript
+order: 2000

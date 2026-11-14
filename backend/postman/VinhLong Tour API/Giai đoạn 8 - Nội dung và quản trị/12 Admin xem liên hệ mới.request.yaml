@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/contact-messages?status=NEW&size=100"
+method: GET
+headers:
+  Authorization: Bearer {{adminToken}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('Có tin nhắn vừa gửi', () => pm.expect(pm.response.json().items.map(m => m.id)).to.include(Number(pm.collectionVariables.get('contactId'))));
+    language: text/javascript
+order: 13000

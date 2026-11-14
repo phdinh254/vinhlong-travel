@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/me"
+method: PUT
+headers:
+  Authorization: Bearer {{customerToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "Trần Thị B",
+      "phone": "0911222333"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('Họ tên đã đổi', () => pm.expect(pm.response.json().fullName).to.eql('Trần Thị B'));
+    language: text/javascript
+order: 8000

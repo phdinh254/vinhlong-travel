@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/me/itineraries/{{tripId}}"
+method: GET
+headers:
+  Authorization: Bearer {{tripToken}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 404', () => pm.response.to.have.status(404));
+      pm.test('code = NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('NOT_FOUND'));
+    language: text/javascript
+order: 15000

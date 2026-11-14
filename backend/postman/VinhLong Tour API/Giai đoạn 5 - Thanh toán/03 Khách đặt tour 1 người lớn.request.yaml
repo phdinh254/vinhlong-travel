@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/bookings"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "departureId": {{payDepartureId}},
+      "contactName": "Lê Văn D",
+      "contactPhone": "0907654321",
+      "passengers": [ { "fullName": "Lê Văn D", "birthDate": "1988-08-08" } ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      const b = pm.response.json();
+      pm.collectionVariables.set('payBookingCode', b.code);
+      pm.collectionVariables.set('payBookingId', b.id);
+      pm.collectionVariables.set('payTotal', b.totalAmount);
+    language: text/javascript
+order: 4000

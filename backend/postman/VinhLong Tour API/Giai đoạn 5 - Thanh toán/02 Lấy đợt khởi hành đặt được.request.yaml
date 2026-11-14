@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/tours/{{payTourId}}/departures"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const d = pm.response.json().find(x => x.bookable && x.seatsLeft >= 1);
+      pm.test('Có đợt còn chỗ', () => pm.expect(d).to.exist);
+      pm.collectionVariables.set('payDepartureId', d.id);
+    language: text/javascript
+order: 3000

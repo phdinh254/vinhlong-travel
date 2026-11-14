@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/bookings/{{cxBookingId}}/refunds"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "amount": {{cxTooMuch}},
+      "method": "BANK_TRANSFER"
+    }
+scripts:
+  - type: beforeRequest
+    code: pm.collectionVariables.set('cxTooMuch', Number(pm.collectionVariables.get('cxRefundDue')) + 1);
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 400', () => pm.response.to.have.status(400));
+      pm.test('code = REFUND_EXCEEDS_DUE', () => pm.expect(pm.response.json().code).to.eql('REFUND_EXCEEDS_DUE'));
+    language: text/javascript
+order: 14000

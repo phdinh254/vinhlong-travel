@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/site-settings"
+method: PUT
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "HOTLINE": "0270 3 822 222",
+      "ADDRESS": "Số 1 đường 2/9, Vĩnh Long",
+      "FACEBOOK_URL": "https://facebook.com/vinhlongtour"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('Đã lưu hotline', () => pm.expect(pm.response.json().HOTLINE).to.eql('0270 3 822 222'));
+    language: text/javascript
+order: 8000

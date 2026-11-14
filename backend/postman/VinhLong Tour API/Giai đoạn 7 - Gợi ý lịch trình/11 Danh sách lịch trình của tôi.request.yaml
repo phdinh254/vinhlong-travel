@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/me/itineraries"
+method: GET
+headers:
+  Authorization: Bearer {{tripToken}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('Có lịch vừa lưu', () => pm.expect(pm.response.json().map(t => t.id)).to.include(Number(pm.collectionVariables.get('tripId'))));
+    language: text/javascript
+order: 12000

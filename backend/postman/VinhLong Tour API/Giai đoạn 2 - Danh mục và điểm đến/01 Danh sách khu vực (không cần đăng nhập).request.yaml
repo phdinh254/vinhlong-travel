@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/regions"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const regions = pm.response.json();
+      const find = name => regions.find(r => r.name === name);
+      pm.test('Có 3 khu vực tỉnh cũ', () => ['Vĩnh Long (cũ)', 'Bến Tre (cũ)', 'Trà Vinh (cũ)'].forEach(n => pm.expect(find(n), n).to.exist));
+      pm.collectionVariables.set('regionVinhLongId', find('Vĩnh Long (cũ)').id);
+      pm.collectionVariables.set('regionBenTreId', find('Bến Tre (cũ)').id);
+    language: text/javascript
+order: 2000

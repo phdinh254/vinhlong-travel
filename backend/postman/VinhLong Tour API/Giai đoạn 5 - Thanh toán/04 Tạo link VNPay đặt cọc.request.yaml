@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/payments/vnpay"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "bookingCode": "{{payBookingCode}}",
+      "phone": "0907654321",
+      "type": "DEPOSIT"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201 (backend cần VNPAY_TMN_CODE, VNPAY_HASH_SECRET)', () => pm.response.to.have.status(201));
+      const l = pm.response.json();
+      pm.test('Link sang sandbox VNPay, số tiền gửi đi = tiền cọc × 100', () => {
+        pm.expect(l.paymentUrl).to.include('sandbox.vnpayment.vn');
+        pm.expect(l.paymentUrl).to.include('vnp_Amount=' + l.amount * 100);
+        pm.expect(l.amount).to.be.below(Number(pm.collectionVariables.get('payTotal')));
+      });
+      pm.collectionVariables.set('vnpRef', l.reference);
+      pm.collectionVariables.set('vnpAmount', l.amount);
+    language: text/javascript
+order: 5000

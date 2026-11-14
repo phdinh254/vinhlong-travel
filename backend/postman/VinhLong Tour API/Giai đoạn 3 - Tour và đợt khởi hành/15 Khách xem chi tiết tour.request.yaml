@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/tours/{{tourId}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      const t = pm.response.json();
+      pm.test('Có lịch trình và dịch vụ bao gồm', () => {
+        pm.expect(t.itinerary.days[0].activities[0].destination.code).to.eql('VL01');
+        pm.expect(t.includedAmenities.length).to.eql(1);
+      });
+    language: text/javascript
+order: 16000

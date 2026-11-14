@@ -1,0 +1,31 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/itineraries"
+method: POST
+headers:
+  Authorization: Bearer {{tripToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "Vĩnh Long 2 ngày văn hóa",
+      "request": {
+        "startDate": "{{tripStart}}",
+        "days": 2,
+        "pace": "MODERATE",
+        "lodging": "VINH_LONG_CENTER",
+        "adults": 2,
+        "children": 1,
+        "budget": 2000000,
+        "categoryIds": [{{cultureId}}]
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      const t = pm.response.json();
+      pm.test('Lịch lưu giống lịch vừa gợi ý', () => pm.expect(t.plan.totalScore).to.eql(Number(pm.collectionVariables.get('tripScore'))));
+      pm.collectionVariables.set('tripId', t.id);
+    language: text/javascript
+order: 11000

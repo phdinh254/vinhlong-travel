@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/v3/api-docs"
+method: DELETE
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 405', () => pm.response.to.have.status(405));
+      pm.test('code = METHOD_NOT_ALLOWED', () => pm.expect(pm.response.json().code).to.eql('METHOD_NOT_ALLOWED'));
+    language: text/javascript
+order: 5000

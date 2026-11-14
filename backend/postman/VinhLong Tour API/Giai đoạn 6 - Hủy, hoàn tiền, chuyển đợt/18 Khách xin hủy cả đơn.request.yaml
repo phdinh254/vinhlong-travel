@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/bookings/{{cxCode}}/cancellation-requests"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "scope": "FULL",
+      "phone": "0909111222"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      const r = pm.response.json().cancellationRequests.at(-1);
+      pm.test('Yêu cầu hủy toàn bộ đang chờ', () => { pm.expect(r.scope).to.eql('FULL'); pm.expect(r.status).to.eql('PENDING'); });
+      pm.collectionVariables.set('cxRequestId2', r.id);
+    language: text/javascript
+order: 19000

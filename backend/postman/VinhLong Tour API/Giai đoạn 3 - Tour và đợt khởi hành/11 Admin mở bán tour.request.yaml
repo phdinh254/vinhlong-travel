@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/tours/{{tourId}}"
+method: PUT
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "code": "{{tourCode}}",
+      "name": "Vĩnh Long – Trà Vinh 2 ngày 1 đêm",
+      "summary": "Văn Thánh Miếu, Ao Bà Om",
+      "durationDays": 2,
+      "durationNights": 1,
+      "regionIds": [{{regionVinhLongId}}, {{regionTraVinhId}}],
+      "categoryIds": [{{categoryCultureId}}],
+      "amenities": [{ "amenityId": {{amenityId}}, "included": true }],
+      "featured": true,
+      "status": "ON_SALE"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('Trạng thái ON_SALE', () => pm.expect(pm.response.json().status).to.eql('ON_SALE'));
+    language: text/javascript
+order: 12000

@@ -1,0 +1,32 @@
+$kind: http-request
+name: 14 Admin thêm điểm đến có giờ đóng trước giờ mở
+url: "{{baseUrl}}/api/v1/admin/destinations"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "code": "TEST99",
+      "name": "Điểm thử",
+      "regionId": {{regionVinhLongId}},
+      "latitude": 10.25,
+      "longitude": 105.97,
+      "coordinateQuality": "APPROXIMATE",
+      "categoryIds": [{{categoryBeachId}}],
+      "openTime": "17:00",
+      "closeTime": "08:00",
+      "hoursQuality": "ESTIMATED",
+      "priceQuality": "UNKNOWN",
+      "visitMinutes": 60,
+      "popularity": 3
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 400', () => pm.response.to.have.status(400));
+      pm.test('code = INVALID_OPENING_HOURS', () => pm.expect(pm.response.json().code).to.eql('INVALID_OPENING_HOURS'));
+    language: text/javascript
+order: 15000

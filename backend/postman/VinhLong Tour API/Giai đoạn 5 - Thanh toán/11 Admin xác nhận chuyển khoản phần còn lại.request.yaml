@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/bookings/{{payBookingId}}/payments"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "amount": {{payRemaining}},
+      "method": "BANK_TRANSFER",
+      "transactionNo": "CK002",
+      "proofUrl": "/uploads/chung-tu-ck.jpg"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 201', () => pm.response.to.have.status(201));
+      const b = pm.response.json();
+      pm.test('Đơn đã trả đủ, không cần hoàn tiền', () => {
+        pm.expect(b.status).to.eql('PAID');
+        pm.expect(b.remainingAmount).to.eql(0);
+        pm.expect(b.refundDue).to.eql(0);
+        pm.expect(b.payments[1].proofUrl).to.eql('/uploads/chung-tu-ck.jpg');
+      });
+    language: text/javascript
+order: 12000
