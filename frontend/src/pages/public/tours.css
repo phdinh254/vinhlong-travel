@@ -1,6 +1,5 @@
 /* ===== Tour du lịch – Organic + Bento + Editorial + Smooth Motion ===== */
 .tr h1, .tr h2, .tr h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: 0; }
-.tr-eyebrow { display: block; margin-bottom: 8px; font-size: .76rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #E9C9A0; }
 .tr.has-tray { padding-bottom: 96px; }
 
 /* Hiệu ứng khi cuộn */
@@ -11,13 +10,13 @@
 .tr-hero { position: relative; isolation: isolate; padding: 64px 0 88px; color: #fff; background: center/cover no-repeat; }
 .tr-hero::before { content: ''; position: absolute; inset: 0; z-index: -1;
   background: linear-gradient(100deg, rgba(22, 48, 42, .94) 0%, rgba(22, 48, 42, .78) 50%, rgba(22, 48, 42, .45) 100%); }
-.tr-hero h1 { margin: 0 0 12px; max-width: 720px; font-size: clamp(2.1rem, 5vw, 3.5rem); line-height: 1.1; }
-.tr-hero p { margin: 0; max-width: 560px; font-size: 1.1rem; line-height: 1.6; color: #d3dfd1; }
+.tr-hero h1 { margin: 0 0 12px; max-width: 720px; font-size: var(--fs-hero); line-height: 1.1; }
+.tr-hero p { margin: 0; max-width: 560px; font-size: var(--fs-lead); line-height: 1.6; color: #d3dfd1; }
 .tr-search { display: flex; gap: 8px; max-width: 640px; margin-top: 26px; padding: 8px; border-radius: 999px; background: var(--white); box-shadow: 0 18px 40px rgba(0, 0, 0, .25); }
 .tr-search input { flex: 1; min-width: 0; border: 0; border-radius: 999px; padding: 12px 18px; font-size: 1.02rem; background: transparent; }
 .tr-search input:focus { outline: none; }
 .tr-search:focus-within { box-shadow: 0 0 0 3px var(--earth), 0 18px 40px rgba(0, 0, 0, .25); }
-.tr-search .btn { border-radius: 999px; padding: 12px 26px; font-size: 1rem; flex: none; }
+.tr-search .btn { border-radius: 999px; padding: 12px 26px; font-size: var(--fs-btn); flex: none; }
 .tr-stats { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 20px; font-size: .92rem; color: #d3dfd1; }
 .tr-stats b { color: #fff; }
 
@@ -42,7 +41,7 @@
 /* Bộ lọc */
 .tr-filter { position: sticky; top: 88px; padding: 22px; border-radius: 22px; background: var(--ivory); border: 1px solid var(--line); max-height: calc(100vh - 110px); overflow: auto; }
 .tr-filter-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-.tr-filter-head h2 { margin: 0; font-size: 1.3rem; color: var(--forest); }
+.tr-filter-head h2 { margin: 0; font-size: var(--fs-h4); color: var(--forest); }
 .tr-close, .tr-apply, .tr-open, .tr-backdrop { display: none; }
 .tr-close { border: 0; background: none; font-size: 1.1rem; cursor: pointer; color: var(--muted); }
 .tr-label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 6px; }
@@ -64,7 +63,7 @@
 .tr-chips button { display: inline-flex; gap: 6px; align-items: center; padding: 5px 12px; border-radius: 999px; border: 0; cursor: pointer;
   font: inherit; font-size: .82rem; font-weight: 500; color: var(--forest); background: var(--green-soft); }
 .tr-chips button:hover { background: #d6e2d4; }
-.tr-chips span { font-size: .7rem; opacity: .7; }
+.tr-chips span { font-size: var(--fs-caption); opacity: .7; }
 
 /* Thẻ tour nổi bật cỡ lớn */
 .tr-feature { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); overflow: hidden; margin-bottom: 20px;
@@ -73,13 +72,13 @@
 .tr-feature-img:hover { opacity: .92; }
 .tr-feature-img .tc-tag { position: absolute; top: 16px; left: 16px; }
 .tr-feature-body { display: flex; flex-direction: column; gap: 10px; padding: 28px 30px; }
-.tr-feature-body h2 { margin: 0; font-size: clamp(1.4rem, 2.4vw, 1.9rem); line-height: 1.2; }
+.tr-feature-body h2 { margin: 0; font-size: var(--fs-h3); line-height: 1.2; }
 .tr-feature-body h2 a { color: var(--forest); }
 .tr-feature-body h2 a:hover { text-decoration: none; color: var(--ink); }
 .tr-feature-body p { margin: 0; color: var(--muted); line-height: 1.6; }
 .tr-feature-facts { list-style: none; margin: 6px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .tr-feature-facts li { display: grid; gap: 2px; padding: 10px 12px; border-radius: 14px; background: var(--cream); font-size: .88rem; font-weight: 500; }
-.tr-feature-facts small { font-size: .72rem; color: var(--muted); font-weight: 400; }
+.tr-feature-facts small { font-size: var(--fs-caption); color: var(--muted); font-weight: 400; }
 .tr-feature-foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-top: auto; padding-top: 14px; border-top: 1px dashed var(--line); }
 .tr-feature-foot small { display: block; font-size: .8rem; color: var(--muted); }
 .tr-feature-foot .price { font-size: 1.5rem; }
@@ -88,13 +87,13 @@
 .tr-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 .tr-grid > div { height: 100%; }
 .tr-empty { padding: 48px 24px; text-align: center; border-radius: 24px; background: var(--ivory); border: 1px dashed var(--line); }
-.tr-empty h3 { margin: 0 0 8px; color: var(--forest); font-size: 1.4rem; }
+.tr-empty h3 { margin: 0 0 8px; color: var(--forest); font-size: var(--fs-h3); }
 .tr-empty p { margin: 0 auto 18px; max-width: 420px; color: var(--muted); }
 
 /* Tour riêng */
 .tr-custom { display: flex; justify-content: space-between; align-items: center; gap: 16px 32px; flex-wrap: wrap; margin-top: 40px;
   padding: 30px 34px; border-radius: 24px 24px 60px 24px; color: #fff; background: radial-gradient(ellipse at 90% 0%, #2f5a47 0%, #16302a 72%); }
-.tr-custom h2 { margin: 0 0 6px; font-size: 1.6rem; }
+.tr-custom h2 { margin: 0 0 6px; font-size: var(--fs-h2); }
 .tr-custom p { margin: 0; max-width: 560px; color: #d3dfd1; line-height: 1.6; }
 .tr-custom .btn { border-radius: 999px; padding: 12px 22px; }
 

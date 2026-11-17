@@ -117,7 +117,7 @@ export default function Tours() {
       {/* ---------- Hero tìm kiếm ---------- */}
       <header className="tr-hero" style={{ backgroundImage: 'url(/images/song-nuoc.jpg)' }}>
         <div className="container">
-          <span className="tr-eyebrow">Tour du lịch</span>
+          <span className="eyebrow light">Tour du lịch</span>
           <h1>Chọn hành trình cho chuyến đi của bạn</h1>
           <p>Tour trọn gói Vĩnh Long – Bến Tre – Trà Vinh: so sánh lịch trình, giá và đặt chỗ trực tuyến.</p>
           <form className="tr-search" onSubmit={(e) => { e.preventDefault(); set('q', q.trim()) }} role="search">

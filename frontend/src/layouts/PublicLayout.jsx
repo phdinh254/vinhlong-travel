@@ -3,6 +3,7 @@ import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom'
 import api from '../api'
 import { useAuth } from '../auth.jsx'
 import SiteFooter from '../components/SiteFooter.jsx'
+import TopBar from '../components/TopBar.jsx'
 import { MAIN_MENU as MENU } from '../menus.js'
 
 export default function PublicLayout() {
@@ -26,6 +27,7 @@ export default function PublicLayout() {
 
   return (
     <>
+      <TopBar cfg={cfg} />
       <header className={`site-header ${scrolled ? 'scrolled' : ''}`}>
         <div className="container">
           <Link to="/" className="brand" aria-label="Vĩnh Long Travel – Trang chủ"><img src="/logo.svg" alt="Vĩnh Long Travel" height="44" /></Link>

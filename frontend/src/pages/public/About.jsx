@@ -21,9 +21,9 @@ const Figure = ({ k, caption, className = '' }) => (
   </figure>
 )
 
-const SectionHead = ({ eyebrow, title, children }) => (
-  <div className="ab-head">
-    <span className="ab-eyebrow">{eyebrow}</span>
+const SectionHead = ({ eyebrow, title, center = false, children }) => (
+  <div className={`ab-head${center ? ' is-center' : ''}`}>
+    <span className="eyebrow">{eyebrow}</span>
     <h2>{title}</h2>
     {children && <p>{children}</p>}
   </div>
@@ -36,7 +36,7 @@ export default function About() {
       {/* ---------- Mở đầu ---------- */}
       <section className="ab-hero" style={{ backgroundImage: `url(${img(HERO.image)})` }}>
         <div className="container ab-hero-in">
-          <span className="ab-eyebrow light">{HERO.eyebrow}</span>
+          <span className="eyebrow light">{HERO.eyebrow}</span>
           <h1>{HERO.title}</h1>
           <p>{HERO.lead}</p>
         </div>
@@ -63,7 +63,7 @@ export default function About() {
       {/* ---------- Lịch sử ---------- */}
       <section className="ab-band">
         <div className="container ab-sec">
-          <SectionHead eyebrow="Dòng chảy thời gian" title="Lịch sử">
+          <SectionHead eyebrow="Dòng chảy thời gian" title="Lịch sử" center>
             Gần ba thế kỷ hình thành và phát triển của vùng đất phía nam sông Tiền.
           </SectionHead>
           <ol className="ab-timeline">
@@ -80,7 +80,7 @@ export default function About() {
 
       {/* ---------- Văn hóa ---------- */}
       <section className="container ab-sec">
-        <SectionHead eyebrow="Bản sắc" title="Văn hóa" />
+        <SectionHead eyebrow="Bản sắc" title="Văn hóa" center />
         <div className="ab-cards">
           {CULTURE.map((c) => (
             <article key={c.title} className="ab-card">
@@ -109,7 +109,7 @@ export default function About() {
       {/* ---------- Thiên nhiên ---------- */}
       <section className="ab-band">
         <div className="container ab-sec">
-          <SectionHead eyebrow="Cảnh sắc" title="Thiên nhiên" />
+          <SectionHead eyebrow="Cảnh sắc" title="Thiên nhiên" center />
           <div className="ab-nature">
             {NATURE.map((n) => (
               <article key={n.title} className="ab-tile" style={{ backgroundImage: `url(${img(n.image)})` }}>
@@ -125,7 +125,7 @@ export default function About() {
 
       {/* ---------- Giá trị đặc trưng ---------- */}
       <section className="container ab-sec">
-        <SectionHead eyebrow="Điều làm nên Vĩnh Long" title="Giá trị đặc trưng" />
+        <SectionHead eyebrow="Điều làm nên Vĩnh Long" title="Giá trị đặc trưng" center />
         <ul className="ab-values">
           {VALUES.map(([icon, title, text]) => (
             <li key={title}>

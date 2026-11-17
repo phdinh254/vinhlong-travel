@@ -75,7 +75,7 @@ Cần Docker Desktop đang chạy: test tích hợp tự bật một PostgreSQL 
 
 Bộ request có kiểm tra tự động nằm ở `backend/postman/VinhLong Tour API/` (định dạng thư mục YAML của Postman 12, mỗi giai đoạn một thư mục). Biến `adminPassword`, `vnpHashSecret` có sẵn giá trị khớp profile `dev`.
 
-1. Mở Postman 12, mở thư mục dự án này (Postman đọc `.postman/resources.yaml` và tự hiện collection **VinhLong Tour API**).
+1. Trong Postman 12, mở thư mục `backend/postman/VinhLong Tour API` vào workspace của bạn (file liên kết workspace là của riêng từng máy nên không đưa lên git).
 2. Bật backend (profile `dev`), bấm chuột phải vào collection → **Run** để chạy toàn bộ theo thứ tự.
 
 Chạy bằng dòng lệnh (Postman CLI, không cần đăng nhập Postman), từ thư mục gốc dự án:
@@ -118,8 +118,7 @@ vinhlong-travel/
 │   ├── src/main/resources/db/migration/   # Flyway: V1__... tới V9__...
 │   └── postman/              # bộ kiểm thử Postman + file mẫu để thử upload
 ├── frontend/                 # React (đang chờ sửa theo API mới)
-├── docs/                     # kế hoạch, đối chiếu API, sơ đồ, dữ liệu điểm đến
-└── .claude/skills/           # skill dùng chung cho Claude Code
+└── docs/                     # kế hoạch, đối chiếu API, sơ đồ, dữ liệu điểm đến
 ```
 
 Các gói lớn (`auth`, `catalog`, `tour`, `booking`, `planner`, `content`) chia tiếp `domain` (entity tự giữ quy tắc), `repository`, `service`, `web` (controller + DTO); gói nhỏ để phẳng.
