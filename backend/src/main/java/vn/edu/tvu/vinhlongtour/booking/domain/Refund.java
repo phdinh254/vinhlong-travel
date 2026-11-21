@@ -2,12 +2,7 @@ package vn.edu.tvu.vinhlongtour.booking.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -17,39 +12,16 @@ import java.time.LocalDateTime;
 
 /**
  * Một lần admin hoàn tiền cho khách (chuyển khoản/tiền mặt, kèm chứng từ). Một đơn có thể hoàn nhiều lần.
+ * Kế thừa {@link MoneyTransaction}: tiền đi ra, đã chuyển ngay khi admin ghi nhận.
  * Chỉ được tạo qua {@link Booking#refund}, không hoàn quá số tiền cần hoàn.
  */
 @Entity
 @Table(name = "refunds")
-public class Refund {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "booking_id")
-    private Booking booking;
+public class Refund extends MoneyTransaction {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cancellation_request_id")
     private CancellationRequest cancellationRequest;
-
-    @Column(nullable = false)
-    private long amount;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private PaymentMethod method;
-
-    @Column(length = 50)
-    private String transactionNo;
-
-    @Column(length = 500)
-    private String proofUrl;
-
-    @Column(length = 500)
-    private String note;
 
     @Column(nullable = false)
     private LocalDateTime refundedAt;
@@ -63,43 +35,34 @@ public class Refund {
 
     Refund(Booking booking, CancellationRequest request, long amount, PaymentMethod method, String transactionNo,
            String proofUrl, String note, Account admin, LocalDateTime now) {
-        this.booking = booking;
+        super(booking, amount, method, transactionNo, proofUrl, note);
         this.cancellationRequest = request;
-        this.amount = amount;
-        this.method = method;
-        this.transactionNo = transactionNo;
-        this.proofUrl = proofUrl;
-        this.note = note;
         this.refundedBy = admin;
         this.refundedAt = now;
     }
 
-    public Long getId() {
-        return id;
+    @Override
+    public MoneyDirection direction() {
+        return MoneyDirection.OUT;
+    }
+
+    @Override
+    public boolean isSettled() {
+        return true;
+    }
+
+    @Override
+    public LocalDateTime settledAt() {
+        return refundedAt;
+    }
+
+    @Override
+    public Account handledBy() {
+        return refundedBy;
     }
 
     public CancellationRequest getCancellationRequest() {
         return cancellationRequest;
-    }
-
-    public long getAmount() {
-        return amount;
-    }
-
-    public PaymentMethod getMethod() {
-        return method;
-    }
-
-    public String getTransactionNo() {
-        return transactionNo;
-    }
-
-    public String getProofUrl() {
-        return proofUrl;
-    }
-
-    public String getNote() {
-        return note;
     }
 
     public LocalDateTime getRefundedAt() {

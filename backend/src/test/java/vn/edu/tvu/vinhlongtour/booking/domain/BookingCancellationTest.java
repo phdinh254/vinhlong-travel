@@ -131,6 +131,21 @@ class BookingCancellationTest {
     }
 
     @Test
+    void moneyHistoryMixesPaymentsAndRefundsAndAddsUpToPaidAmount() {
+        Booking b = paidBooking(5, adultPassenger("A"), adultPassenger("B"));
+        b.approveCancellation(b.requestCancellation(CancellationScope.FULL, null, null, null, NOW), null, null, NOW);
+        b.refund(600_000, PaymentMethod.BANK_TRANSFER, "HT1", null, null, null, null, NOW.plusHours(1));
+        b.refund(400_000, PaymentMethod.CASH, null, null, null, null, null, NOW.plusHours(2));
+
+        List<MoneyTransaction> history = b.moneyHistory();
+
+        assertThat(history).extracting(MoneyTransaction::direction)
+                .containsExactly(MoneyDirection.IN, MoneyDirection.OUT, MoneyDirection.OUT);
+        assertThat(history).extracting(MoneyTransaction::signedAmount).containsExactly(2_000_000L, -600_000L, -400_000L);
+        assertThat(history.stream().mapToLong(MoneyTransaction::signedAmount).sum()).isEqualTo(b.getPaidAmount());
+    }
+
+    @Test
     void noPolicyMeansNoPenalty() {
         Booking b = paidBooking(1, adultPassenger("A"), adultPassenger("B"));
         ReflectionTestUtils.setField(b, "cancellationPolicy", null);

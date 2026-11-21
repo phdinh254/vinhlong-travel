@@ -26,8 +26,10 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Đơn đặt tour: một đợt khởi hành, người liên hệ (khách vãng lai hoặc có tài khoản), danh sách hành khách,
@@ -568,6 +570,17 @@ public class Booking {
 
     public List<BookingStatusHistory> getHistory() {
         return List.copyOf(history);
+    }
+
+    /**
+     * Sổ tiền của đơn: mọi khoản đã thực chuyển (thanh toán thành công và hoàn tiền), theo thứ tự thời gian.
+     * Cộng {@link MoneyTransaction#signedAmount()} của cả sổ luôn bằng {@code paidAmount}.
+     */
+    public List<MoneyTransaction> moneyHistory() {
+        return Stream.concat(payments.stream(), refunds.stream())
+                .filter(MoneyTransaction::isSettled)
+                .sorted(Comparator.comparing(MoneyTransaction::settledAt).thenComparing(MoneyTransaction::direction))
+                .toList();
     }
 
     public List<Payment> getPayments() {

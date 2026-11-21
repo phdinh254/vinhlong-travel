@@ -91,9 +91,12 @@ Chạy backend với mật khẩu/khóa khác thì thêm `--env-var "adminPasswo
 | Tài liệu | Nội dung |
 |---|---|
 | [`docs/KE_HOACH_BACKEND.md`](docs/KE_HOACH_BACKEND.md) | Kế hoạch, kiến trúc, OOP áp dụng ở đâu, thuật toán gợi ý lịch trình (TOPTW + Iterated Local Search) và bảng so sánh với cách tham lam |
+| [`docs/OOP.md`](docs/OOP.md) | Đóng gói, kế thừa, đa hình, trừu tượng, mẫu thiết kế: nằm ở lớp nào, file nào (dùng cho báo cáo) |
 | [`docs/API_CHANGES.md`](docs/API_CHANGES.md) | Đối chiếu API cũ → mới theo từng trang frontend |
 | [`docs/diagrams/class-diagram.drawio.png`](docs/diagrams/class-diagram.drawio.png) | Sơ đồ lớp các lớp chính (mở file `.drawio` hoặc chính file `.png` bằng draw.io để sửa) |
 | [`docs/diagrams/erd.drawio.png`](docs/diagrams/erd.drawio.png) | ERD 37 bảng, sinh từ các file migration |
+| [`docs/diagrams/use-case.drawio.png`](docs/diagrams/use-case.drawio.png) | Sơ đồ use case: khách vãng lai, khách hàng, admin, VNPay, Google |
+| [`docs/diagrams/sequence-booking.drawio.png`](docs/diagrams/sequence-booking.drawio.png), [`sequence-planner.drawio.png`](docs/diagrams/sequence-planner.drawio.png) | Sơ đồ tuần tự: đặt tour và thanh toán VNPay; gợi ý lịch trình |
 | [`docs/data/`](docs/data/) | 38 điểm đến thật (CSV), nguồn và độ tin cậy từng dòng |
 
 ## Cấu trúc thư mục
