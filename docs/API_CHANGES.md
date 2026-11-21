@@ -93,7 +93,7 @@ Mỗi danh mục đều có `GET` (danh sách), `POST` (thêm), `PUT /{id}` (s�
 | Cũ | Mới | Ghi chú |
 |---|---|---|
 | `GET /api/admin/bookings` | `GET /api/v1/admin/bookings?q=&status=&tourId=&departureId=&needsRefund=&page=&size=` | `needsRefund=true`: đơn đã thu thừa cần hoàn |
-| `GET /api/admin/bookings/{id}` | `GET /api/v1/admin/bookings/{id}` | Kèm hành khách, phụ thu, thanh toán, yêu cầu hủy, hoàn tiền, chuyển đợt, lịch sử trạng thái, `refundDue` |
+| `GET /api/admin/bookings/{id}` | `GET /api/v1/admin/bookings/{id}` | Kèm hành khách, phụ thu, thanh toán, yêu cầu hủy, hoàn tiền, chuyển đợt, lịch sử trạng thái, `refundDue`, và `moneyHistory` (sổ tiền: thanh toán thành công và hoàn tiền theo thời gian, `amount` dương là tiền vào, âm là tiền ra) |
 | `PUT /api/admin/bookings/{id}/trang-thai` | `PATCH /api/v1/admin/bookings/{id}/status` | Chỉ đổi tay sang `COMPLETED` (sau chuyến đi) hoặc `CANCELLED` (đơn chưa thu tiền); các trạng thái khác tự đổi theo tiền |
 | `POST /api/admin/bookings/{id}/thanh-toan` | `POST /api/v1/admin/bookings/{id}/payments` | Ghi nhận tiền mặt/chuyển khoản `{ amount, method: "CASH" \| "BANK_TRANSFER", transactionNo, proofUrl, note }` |
 | `POST /api/admin/bookings/{id}/hoan-tien` | `POST /api/v1/admin/bookings/{id}/refunds` | Hoàn nhiều lần được, không vượt `refundDue` (`REFUND_EXCEEDS_DUE`) |

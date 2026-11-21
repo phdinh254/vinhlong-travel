@@ -52,7 +52,7 @@ public class Departure { ... }
 
 ```
 vn.edu.tvu.vinhlongtour
-├── common/        lỗi chung, phân trang, kiểu Money
+├── common/        lỗi chung, phân trang, cấu hình
 ├── auth/          tài khoản, vai trò, đăng ký/đăng nhập, Google, JWT
 ├── catalog/       khu vực, loại hình, dịch vụ, điểm đến, điểm đón, loại khách, phụ thu, chính sách hủy
 ├── tour/          tour, ảnh, lịch trình mẫu, đợt khởi hành, bảng giá
@@ -70,14 +70,15 @@ Mỗi gói có `domain` (entity + enum), `repository`, `service`, `web` (control
 
 | Nguyên lý | Áp dụng vào chỗ nào |
 |---|---|
-| **Đóng gói** | Entity tự giữ quy tắc. `Departure.reserveSeats(n)` tự kiểm tra còn chỗ, tự chuyển `SOLD_OUT`; `Booking.recordPayment(amount)` tự tính lại trạng thái. Service không sửa thẳng các trường số chỗ, số tiền. |
+| **Đóng gói** | Entity tự giữ quy tắc. `Departure.reserveSeats(n)` tự kiểm tra còn chỗ (thiếu thì báo `SEAT_NOT_ENOUGH`); `Booking.recordManualPayment(...)`, `Booking.refund(...)` tự cộng/trừ tiền và tự đổi trạng thái. Service không sửa thẳng các trường số chỗ, số tiền. |
 | **Enum có hành vi** | `BookingStatus` khai báo bước chuyển hợp lệ (`PENDING_PAYMENT → DEPOSITED → PAID → COMPLETED`, …). Chuyển sai → lỗi ngay. |
 | **Đa hình (phụ thu)** | `SurchargeMethod` = `PER_PERSON`, `PER_BOOKING`, `PER_UNIT`, mỗi giá trị tự cài `quantity(...)`. |
 | **Thanh toán** | *Đã đổi khi làm giai đoạn 5:* không tạo `interface PaymentGateway` vì chỉ có VNPay là cổng thật (xác nhận thủ công do admin làm, không phải cổng). Interface chỉ một cài đặt là thừa; khi thêm cổng thứ hai (MoMo...) thì tách interface từ `VnPayGateway`. `Payment` thuộc đơn, mọi khoản tiền vào đi qua `Booking` khi đã khóa dòng đơn. |
 | **Đa hình (gợi ý lịch trình)** | `interface ScoringCriterion` với 3 cài đặt: `InterestMatch` (khớp sở thích), `Popularity` (độ nổi bật), `PreferredRegion` (khu vực ưu tiên). *Đã đổi khi làm giai đoạn 7:* không tạo `interface TravelTimeEstimator`; thuật toán nhận thẳng **bảng thời gian di chuyển**, nên test dùng được bảng của ví dụ tính tay, sau này đổi cách tính đường đi chỉ cần dựng bảng khác. |
-| **Value object** | `Money` (bọc `BigDecimal`, luôn làm tròn tới đồng), `AgeRange`, `GeoPoint`, `TimeWindow`. |
+| **Kế thừa (khoản tiền)** | *Thêm sau khi xong 10 giai đoạn:* lớp trừu tượng `MoneyTransaction` là cha của `Payment` (tiền vào) và `Refund` (tiền ra), giữ các trường chung; mỗi lớp con tự cài `direction()`, `isSettled()`, `settledAt()`, `handledBy()`. `Booking.moneyHistory()` gộp hai loại thành sổ tiền nhờ đa hình. |
+| **Value object** | `AgeRange`, `GeoPoint`, `TimeWindow`, `PenaltyTier` (record bất biến, tự kiểm tra dữ liệu). *Đã đổi:* không làm kiểu `Money`; tiền là số nguyên `long` tính bằng đồng (tiền Việt không có phần lẻ nên không cần `BigDecimal`). |
 
-Sẽ vẽ **sơ đồ lớp** và **ERD** bằng draw.io để đưa vào báo cáo.
+Bảng đầy đủ "nguyên lý → lớp nào, file nào" theo code thật nằm ở [`OOP.md`](OOP.md); sơ đồ lớp, ERD, use case, tuần tự ở `docs/diagrams/`.
 
 ### 3.4. Thiết kế API mới
 
@@ -147,7 +148,7 @@ Lý do chọn: được thiết kế đúng cho "hướng dẫn viên du lịch 
 | Điểm hấp dẫn `S_i` | Tổng có trọng số của các `ScoringCriterion`: khớp sở thích khách chọn (thẻ của điểm đến), độ nổi bật (admin chấm 1–5), thuộc khu vực ưu tiên. Quy về số nguyên 1–100 |
 | Thời gian tham quan `T_i` | Cột `visitMinutes` của điểm đến |
 | Khung giờ `[O_i, C_i]` | Giờ mở/đóng cửa của điểm đến. *Đã đổi khi làm giai đoạn 7:* phải **tham quan xong trước giờ đóng cửa** (`C_i` = giờ đóng − thời gian tham quan), thực tế hơn "vào trước giờ đóng" |
-| Thời gian di chuyển `c_ij` | Khoảng cách đường chim bay (Haversine) × 1,3 (hệ số đường vòng) ÷ 30 km/h. Đây là ước tính; có ghi chú `shortcut:` trong code, sau này có thể thay bằng bảng thời gian do admin nhập (ví dụ chỗ phải qua phà) qua `TravelTimeEstimator` |
+| Thời gian di chuyển `c_ij` | Khoảng cách đường chim bay (Haversine) × 1,3 (hệ số đường vòng) ÷ 30 km/h. Đây là ước tính; có ghi chú `shortcut:` trong code, sau này có thể thay bằng bảng thời gian do admin nhập (ví dụ chỗ phải qua phà) |
 | Quỹ giờ mỗi ngày | Nhịp đi: thong thả 8:00–16:00, vừa 7:30–17:30, dày 7:00–19:00 |
 | Nơi xuất phát mỗi ngày | **Khách chọn nơi lưu trú**: chọn nhanh từ danh sách (trung tâm Vĩnh Long cũ, Bến Tre cũ, Trà Vinh cũ, cù lao An Bình) hoặc gửi tọa độ tự chọn trên bản đồ. Mỗi ngày đi và về nơi này |
 | Bữa trưa | Thêm 1 "điểm ăn trưa" ảo mỗi ngày: 60 phút, bắt đầu trong 11:00–13:30, ăn tại chỗ vừa tham quan, buộc phải có. Tiền ăn ước tính 80.000 đ/người (chưa có danh mục quán ăn) |
