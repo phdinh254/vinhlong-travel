@@ -103,7 +103,9 @@ class CancellationIntegrationTests {
         refund(b.id(), 310_000).andExpect(status().isCreated())
                 .andExpect(jsonPath("$.refundDue").value(0))
                 .andExpect(jsonPath("$.paidAmount").value(90_000))
-                .andExpect(jsonPath("$.refunds.length()").value(2));
+                .andExpect(jsonPath("$.refunds.length()").value(2))
+                .andExpect(jsonPath("$.moneyHistory[*].direction").value(org.hamcrest.Matchers.contains("IN", "OUT", "OUT")))
+                .andExpect(jsonPath("$.moneyHistory[*].amount").value(org.hamcrest.Matchers.contains(900_000, -500_000, -310_000)));
     }
 
     @Test

@@ -17,6 +17,8 @@ import vn.edu.tvu.vinhlongtour.booking.domain.CancellationScope;
 import vn.edu.tvu.vinhlongtour.booking.domain.DepartureTransfer;
 import vn.edu.tvu.vinhlongtour.booking.domain.Refund;
 import vn.edu.tvu.vinhlongtour.booking.domain.Gender;
+import vn.edu.tvu.vinhlongtour.booking.domain.MoneyDirection;
+import vn.edu.tvu.vinhlongtour.booking.domain.MoneyTransaction;
 import vn.edu.tvu.vinhlongtour.booking.domain.Passenger;
 import vn.edu.tvu.vinhlongtour.booking.domain.PassengerStatus;
 import vn.edu.tvu.vinhlongtour.booking.domain.Payment;
@@ -112,7 +114,7 @@ public final class BookingDtos {
                                 LocalDateTime holdUntil, LocalDateTime createdAt,
                                 CancellationPolicyResponse cancellationPolicy, List<PaymentResponse> payments,
                                 List<CancellationRequestResponse> cancellationRequests, List<RefundResponse> refunds,
-                                List<TransferResponse> transfers, List<HistoryEntry> history) {
+                                List<TransferResponse> transfers, List<MoneyLine> moneyHistory, List<HistoryEntry> history) {
 
         /** @param minimumFirstPayment số tiền tối thiểu cần trả tiếp: tiền cọc nếu chưa trả gì, còn lại nếu đã trả */
         public static BookingDetail from(Booking b, long minimumFirstPayment) {
@@ -133,6 +135,7 @@ public final class BookingDtos {
                     b.getCancellationRequests().stream().map(CancellationRequestResponse::from).toList(),
                     b.getRefunds().stream().map(RefundResponse::from).toList(),
                     b.getTransfers().stream().map(TransferResponse::from).toList(),
+                    b.moneyHistory().stream().map(MoneyLine::from).toList(),
                     b.getHistory().stream().map(h -> new HistoryEntry(h.getFromStatus(), h.getToStatus(), h.getChangedAt(),
                             h.getChangedBy() == null ? null : h.getChangedBy().getFullName(), h.getReason())).toList());
         }
@@ -187,6 +190,16 @@ public final class BookingDtos {
             return new RefundResponse(r.getId(), r.getAmount(), r.getMethod(), r.getTransactionNo(), r.getProofUrl(), r.getNote(),
                     r.getRefundedAt(), r.getRefundedBy().getFullName(),
                     r.getCancellationRequest() == null ? null : r.getCancellationRequest().getId());
+        }
+    }
+
+    /** Một dòng sổ tiền: {@code amount} dương là khách trả vào, âm là công ty hoàn ra. */
+    public record MoneyLine(MoneyDirection direction, long amount, PaymentMethod method, String transactionNo,
+                            LocalDateTime at, String handledBy) {
+
+        static MoneyLine from(MoneyTransaction t) {
+            return new MoneyLine(t.direction(), t.signedAmount(), t.getMethod(), t.getTransactionNo(), t.settledAt(),
+                    t.handledBy() == null ? null : t.handledBy().getFullName());
         }
     }
 
