@@ -35,7 +35,7 @@ import static vn.edu.tvu.vinhlongtour.TestAuth.bearer;
 import static vn.edu.tvu.vinhlongtour.TestAuth.customerToken;
 
 /**
- * Kiểm tra luồng tour và đợt khởi hành trên PostgreSQL thật: soạn tour, mở bán, tạo đợt
+ * Kiểm tra luồng tour và đợt khởi hành trên MySQL thật: soạn tour, mở bán, tạo đợt
  * (sao chép lịch trình mẫu), khách tìm/lọc và xem, các quy tắc chặn sai sót.
  */
 @SpringBootTest
@@ -95,6 +95,24 @@ class TourIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.days[0].title").value("Vĩnh Long"))
                 .andExpect(jsonPath("$.days[1].title").value("Trà Vinh"));
+    }
+
+    @Test
+    void itineraryCanGrowAndShrink() throws Exception {
+        // CSDL có unique (lịch trình, số ngày): thay lịch trình nhiều/ít ngày hơn không được vướng trùng số ngày
+        long tourId = createTour(code, null);
+        for (String[] titles : new String[][]{{"A"}, {"B1", "B2", "B3"}, {"C1", "C2"}}) {
+            String days = java.util.Arrays.stream(titles).map(t -> "{\"title\":\"" + t + "\",\"activities\":[{\"title\":\"Hoạt động " + t + "\"}]}")
+                    .collect(java.util.stream.Collectors.joining(","));
+            mvc.perform(put("/api/v1/admin/tours/{id}/itinerary", tourId).header("Authorization", admin)
+                            .contentType(MediaType.APPLICATION_JSON).content("{\"days\":[" + days + "]}"))
+                    .andExpect(status().isOk());
+            mvc.perform(get("/api/v1/admin/tours/{id}", tourId).header("Authorization", admin))
+                    .andExpect(jsonPath("$.itinerary.days[*].title").value(org.hamcrest.Matchers.contains((Object[]) titles)))
+                    .andExpect(jsonPath("$.itinerary.days[*].dayNumber").value(org.hamcrest.Matchers.contains(
+                            java.util.stream.IntStream.rangeClosed(1, titles.length).boxed().toArray())))
+                    .andExpect(jsonPath("$.itinerary.days[0].activities[0].title").value("Hoạt động " + titles[0]));
+        }
     }
 
     @Test

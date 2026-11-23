@@ -32,7 +32,7 @@ import static vn.edu.tvu.vinhlongtour.TestAuth.adminToken;
 import static vn.edu.tvu.vinhlongtour.TestAuth.bearer;
 
 /**
- * Kiểm tra thanh toán trên PostgreSQL thật, giả lập VNPay bằng cách tự ký dữ liệu IPN với khóa test:
+ * Kiểm tra thanh toán trên MySQL thật, giả lập VNPay bằng cách tự ký dữ liệu IPN với khóa test:
  * chống ghi trùng, chặn sai chữ ký/sai số tiền, trả thừa, trả sau khi hết hạn giữ chỗ, xác nhận thủ công.
  */
 @SpringBootTest
