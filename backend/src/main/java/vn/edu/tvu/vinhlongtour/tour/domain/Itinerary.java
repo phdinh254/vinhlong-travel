@@ -34,11 +34,21 @@ public class Itinerary {
     public Itinerary() {
     }
 
-    /** Thay toàn bộ lịch trình; ngày được đánh số 1, 2, 3... theo thứ tự truyền vào. */
+    /**
+     * Thay toàn bộ lịch trình; ngày được đánh số 1, 2, 3... theo thứ tự truyền vào.
+     * Ngày đã có thì sửa tại chỗ, chỉ thêm/xóa ngày ở cuối: CSDL có unique (lịch trình, số ngày) mà Hibernate
+     * chèn dòng mới trước khi xóa dòng cũ, nên xóa hết rồi tạo lại sẽ vướng trùng số ngày.
+     */
     public void replaceDays(List<DayPlan> plans) {
-        days.clear();
         for (int i = 0; i < plans.size(); i++) {
-            days.add(new ItineraryDay(this, i + 1, plans.get(i)));
+            if (i < days.size()) {
+                days.get(i).apply(plans.get(i));
+            } else {
+                days.add(new ItineraryDay(this, i + 1, plans.get(i)));
+            }
+        }
+        while (days.size() > plans.size()) {
+            days.removeLast();
         }
     }
 

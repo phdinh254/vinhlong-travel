@@ -31,7 +31,7 @@ import static vn.edu.tvu.vinhlongtour.TestAuth.bearer;
 import static vn.edu.tvu.vinhlongtour.TestAuth.customerToken;
 
 /**
- * Kiểm tra tin tức, cấu hình trang, tin nhắn liên hệ và upload ảnh trên PostgreSQL thật.
+ * Kiểm tra tin tức, cấu hình trang, tin nhắn liên hệ và upload ảnh trên MySQL thật.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -97,7 +97,7 @@ class ContentIntegrationTests {
     void republishingKeepsTheFirstPublishDate() throws Exception {
         String json = body(createArticle(article("Bài xuất bản " + UUID.randomUUID(), null, "PUBLISHED")));
         long id = ((Number) JsonPath.read(json, "$.id")).longValue();
-        // Đọc lại từ CSDL: PostgreSQL chỉ lưu tới micro giây, còn đối tượng vừa tạo giữ độ chính xác của đồng hồ máy
+        // Đọc lại từ CSDL: cột datetime(6) chỉ lưu tới micro giây, còn đối tượng vừa tạo giữ độ chính xác của đồng hồ máy
         String publishedAt = JsonPath.read(body(mvc.perform(get("/api/v1/admin/articles/{id}", id).header("Authorization", admin))),
                 "$.publishedAt");
 

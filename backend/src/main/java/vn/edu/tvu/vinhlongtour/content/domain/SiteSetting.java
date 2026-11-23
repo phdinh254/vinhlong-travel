@@ -16,7 +16,7 @@ public class SiteSetting {
     @Column(name = "setting_key", length = 40)
     private String key;
 
-    @Column(nullable = false, columnDefinition = "text")
+    @Column(nullable = false, columnDefinition = "mediumtext")
     private String value;
 
     protected SiteSetting() {

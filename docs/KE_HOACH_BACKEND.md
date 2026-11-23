@@ -21,11 +21,11 @@ Yêu cầu của môn **Lập trình hướng đối tượng**: code thể hi�
 |---|---|---|
 | Ngôn ngữ | **Java 21 (LTS)** — cả nhóm cài JDK 21 | Có `record`, `sealed`, `switch` pattern — viết OOP gọn hơn |
 | Framework | Spring Boot 4.0.x (Web, Data JPA, Security, Validation, OAuth2 Resource Server) | Kiểm tra bản patch mới nhất khi khởi tạo |
-| CSDL | **PostgreSQL 17 chạy bằng Docker** (`docker compose up -d`) | Bỏ XAMPP/MySQL. Một lệnh là có CSDL, mọi máy giống nhau |
+| CSDL | **MySQL 8.4 chạy bằng Docker** (`docker compose up -d`) | Bỏ XAMPP. Một lệnh là có CSDL, mọi máy giống nhau. *Đã đổi sau khi xong 10 giai đoạn:* ban đầu dùng PostgreSQL 17, chuyển sang MySQL theo yêu cầu của nhóm |
 | Tạo bảng | **Flyway** (`src/main/resources/db/migration/V1__...sql`) | Bảng tự tạo khi chạy backend, không import SQL bằng tay |
 | Đăng nhập | JWT (HS256) qua Spring Security; Google ID token kiểm tra bằng khóa công khai (JWKS) của Google | Dùng sẵn của Spring, bỏ `jjwt` và `google-api-client` |
 | Tài liệu API | springdoc-openapi → Swagger UI tại `/swagger-ui.html` | Dev frontend xem và thử API trực tiếp |
-| Kiểm thử | JUnit 5 + Mockito (logic thuần) + Testcontainers PostgreSQL (repository, luồng đặt tour) | Test chạy trên PostgreSQL thật |
+| Kiểm thử | JUnit 5 + Mockito (logic thuần) + Testcontainers MySQL (repository, luồng đặt tour) | Test chạy trên MySQL thật |
 | Build | Maven (kèm `mvnw`, không cần cài Maven) | |
 
 Chạy dự án sau khi xong: `docker compose up -d` → `./mvnw spring-boot:run` → frontend `npm run dev`.
@@ -232,7 +232,7 @@ Lý do chọn: được thiết kế đúng cho "hướng dẫn viên du lịch 
 
 | # | Giai đoạn | Nội dung | Xong khi |
 |---|---|---|---|
-| 0 | Khởi tạo | Maven + `mvnw`, Java 21, `docker-compose.yml` (PostgreSQL), Flyway, Swagger, xử lý lỗi chung, `/actuator/health`, README mới (bỏ XAMPP) | `docker compose up -d && ./mvnw verify` chạy xanh; Swagger mở được |
+| 0 | Khởi tạo | Maven + `mvnw`, Java 21, `docker-compose.yml` (lúc đầu PostgreSQL, nay là MySQL), Flyway, Swagger, xử lý lỗi chung, `/actuator/health`, README mới (bỏ XAMPP) | `docker compose up -d && ./mvnw verify` chạy xanh; Swagger mở được |
 | 1 | Tài khoản | Đăng ký, đăng nhập, JWT, vai trò ADMIN/CUSTOMER, tạo admin lần đầu (mật khẩu từ biến môi trường), khóa/mở tài khoản, hồ sơ, đổi mật khẩu, đăng nhập Google | Test: sai mật khẩu, token hết hạn, tài khoản bị khóa bị chặn ngay |
 | 2 | Danh mục | CRUD 8 loại danh mục; điểm đến có tọa độ, giờ mở cửa, ngày đóng cửa, thời gian tham quan, thẻ sở thích, cờ độ tin cậy dữ liệu; chính sách hủy có phiên bản; nạp 38 điểm đến từ `docs/data/diem-den.csv` | Test CRUD + validate (khoảng tuổi chồng nhau, giờ mở sau giờ đóng bị từ chối) |
 | 3 | Tour & đợt | CRUD tour, ảnh, lịch trình mẫu, đợt khởi hành, bảng giá, điểm đón; API công khai tìm/lọc tour, chi tiết, lịch trình | Test lọc tour; tạo đợt tự sao chép lịch trình mẫu |
@@ -262,5 +262,6 @@ Lý do chọn: được thiết kế đúng cho "hướng dẫn viên du lịch 
 | Cách làm việc | Dừng sau mỗi giai đoạn để duyệt |
 | Dữ liệu điểm đến | Dữ liệu thật tìm trên mạng: `docs/data/diem-den.csv` |
 | Nơi xuất phát mỗi ngày | Khách chọn nơi lưu trú |
+| CSDL | MySQL 8.4 qua Docker (đổi từ PostgreSQL). Bảng mã `utf8mb4`, so sánh `utf8mb4_0900_as_ci`: không phân biệt hoa/thường nhưng phân biệt dấu tiếng Việt. Khác biệt đã xử lý: khóa ngoại viết thành dòng riêng (MySQL bỏ qua khóa ngoại viết trên dòng cột); "mỗi đơn một yêu cầu hủy đang chờ" dùng cột sinh tự động + unique thay cho index có điều kiện; thay lịch trình sửa ngày cũ tại chỗ vì MySQL không có ràng buộc kiểm tra lúc commit; nội dung dài dùng `mediumtext` |
 
 Đã làm xong cả 10 giai đoạn (giai đoạn 0–9) trên nhánh `hoanglong`.

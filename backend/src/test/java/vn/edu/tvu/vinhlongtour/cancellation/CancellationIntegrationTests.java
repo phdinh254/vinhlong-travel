@@ -30,7 +30,7 @@ import static vn.edu.tvu.vinhlongtour.TestAuth.bearer;
 import static vn.edu.tvu.vinhlongtour.TestAuth.customerToken;
 
 /**
- * Kiểm tra hủy tour, hoàn tiền, chuyển đợt trên PostgreSQL thật: tự duyệt đơn chưa trả tiền,
+ * Kiểm tra hủy tour, hoàn tiền, chuyển đợt trên MySQL thật: tự duyệt đơn chưa trả tiền,
  * phí phạt theo chính sách đã chốt, hủy một phần, hoàn tiền nhiều lần, chuyển đợt tính lại giá theo tuổi.
  */
 @SpringBootTest

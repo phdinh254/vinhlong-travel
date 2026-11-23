@@ -6,7 +6,7 @@ spring:
     name: vinhlong-tour
   datasource:
     # Mặc định khớp docker-compose.yml ở thư mục gốc dự án
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/vinhlongtour}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/vinhlongtour}
     username: ${DB_USER:vinhlong}
     password: ${DB_PASSWORD:vinhlong}
   servlet:

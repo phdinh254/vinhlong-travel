@@ -8,9 +8,9 @@
 | Thành phần | Công nghệ |
 |---|---|
 | Backend | Java 21, Spring Boot 4.1 (Web MVC, Data JPA, Validation, Security + JWT, Actuator), Flyway, springdoc-openapi (Swagger) |
-| CSDL | PostgreSQL 17 chạy bằng Docker — **không dùng XAMPP/MySQL** |
+| CSDL | MySQL 8.4 chạy bằng Docker — **không dùng XAMPP** (XAMPP cài MariaDB, không phải MySQL) |
 | Frontend | React 19 + Vite, React Router, Axios |
-| Kiểm thử | JUnit 5, Testcontainers (PostgreSQL thật trong Docker), Postman |
+| Kiểm thử | JUnit 5, Testcontainers (MySQL thật trong Docker), Postman |
 
 ## Chạy nhanh (máy mới clone về)
 
@@ -39,7 +39,9 @@ Khoảng 30 giây sau backend chạy ở http://localhost:8081. Bảng trong CSD
 
 Frontend (khi đã sửa theo API mới): `cd frontend && cp .env.example .env && npm install && npm run dev` → http://localhost:5173.
 
-Dừng CSDL: `docker compose down` (giữ dữ liệu) hoặc `docker compose down -v` (xóa sạch, lần chạy sau nạp lại demo). Nếu cổng 5432 đã bị chiếm: `DB_PORT=5433 docker compose up -d` và đặt `DB_URL=jdbc:postgresql://localhost:5433/vinhlongtour`.
+Dừng CSDL: `docker compose down` (giữ dữ liệu) hoặc `docker compose down -v` (xóa sạch, lần chạy sau nạp lại demo). Nếu cổng 3306 đã bị chiếm (thường do XAMPP hoặc MySQL cài sẵn trên máy đang chạy): tắt chương trình đó, hoặc chạy `DB_PORT=3307 docker compose up -d` và đặt `DB_URL=jdbc:mysql://localhost:3307/vinhlongtour`.
+
+Xem dữ liệu bằng công cụ quen thuộc (MySQL Workbench, DBeaver, HeidiSQL...): host `localhost`, cổng `3306`, CSDL `vinhlongtour`, tài khoản `vinhlong` / `vinhlong`.
 
 ## Chạy không có dữ liệu demo (giống môi trường thật)
 
@@ -69,7 +71,7 @@ cd backend
 ./mvnw verify
 ```
 
-Cần Docker Desktop đang chạy: test tích hợp tự bật một PostgreSQL tạm trong Docker và xóa đi sau khi xong. Có test riêng cho từng giai đoạn, gồm: hai người tranh chỗ cuối chỉ một người được, IPN VNPay gửi hai lần chỉ ghi một lần, chữ ký VNPay khớp bản cài độc lập bằng Python, ví dụ tính tay của thuật toán gợi ý lịch trình ra đúng từng số, dashboard đếm đúng.
+Cần Docker Desktop đang chạy: test tích hợp tự bật một MySQL tạm trong Docker và xóa đi sau khi xong. Có test riêng cho từng giai đoạn, gồm: hai người tranh chỗ cuối chỉ một người được, IPN VNPay gửi hai lần chỉ ghi một lần, chữ ký VNPay khớp bản cài độc lập bằng Python, ví dụ tính tay của thuật toán gợi ý lịch trình ra đúng từng số, dashboard đếm đúng.
 
 ### Kiểm thử API bằng Postman
 
@@ -103,7 +105,7 @@ Chạy backend với mật khẩu/khóa khác thì thêm `--env-var "adminPasswo
 
 ```
 vinhlong-travel/
-├── docker-compose.yml        # PostgreSQL cho môi trường phát triển
+├── docker-compose.yml        # MySQL cho môi trường phát triển
 ├── backend/
 │   ├── src/main/java/vn/edu/tvu/vinhlongtour/
 │   │   ├── auth/             # tài khoản, đăng nhập, JWT, Google

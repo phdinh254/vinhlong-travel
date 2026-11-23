@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Kiểm tra toàn bộ luồng tài khoản trên PostgreSQL thật: đăng ký, đăng nhập, token sai/hết hạn,
+ * Kiểm tra toàn bộ luồng tài khoản trên MySQL thật: đăng ký, đăng nhập, token sai/hết hạn,
  * phân quyền admin, khóa tài khoản có hiệu lực ngay, đổi mật khẩu, đăng nhập Google
  * (giả lập phần kiểm tra token của Google).
  */

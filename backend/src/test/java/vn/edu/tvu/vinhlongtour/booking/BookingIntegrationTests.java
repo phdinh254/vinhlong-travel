@@ -44,7 +44,7 @@ import static vn.edu.tvu.vinhlongtour.TestAuth.bearer;
 import static vn.edu.tvu.vinhlongtour.TestAuth.customerToken;
 
 /**
- * Kiểm tra luồng đặt tour trên PostgreSQL thật: báo giá, giữ chỗ, tra cứu, đơn của tôi,
+ * Kiểm tra luồng đặt tour trên MySQL thật: báo giá, giữ chỗ, tra cứu, đơn của tôi,
  * nhiều người tranh chỗ cuối cùng cùng lúc, hết hạn giữ chỗ và admin hủy đơn.
  */
 @SpringBootTest
