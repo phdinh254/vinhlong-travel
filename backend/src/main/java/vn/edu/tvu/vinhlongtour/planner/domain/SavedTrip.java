@@ -32,10 +32,10 @@ public class SavedTrip {
     @Column(nullable = false, length = 150)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "text")
+    @Column(nullable = false, columnDefinition = "mediumtext")
     private String request;
 
-    @Column(nullable = false, columnDefinition = "text")
+    @Column(nullable = false, columnDefinition = "mediumtext")
     private String plan;
 
     @Column(nullable = false)

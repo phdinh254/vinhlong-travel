@@ -32,7 +32,7 @@ import static vn.edu.tvu.vinhlongtour.TestAuth.bearer;
 import static vn.edu.tvu.vinhlongtour.TestAuth.customerToken;
 
 /**
- * Kiểm tra API danh mục trên PostgreSQL thật, gồm 38 điểm đến nạp từ Flyway:
+ * Kiểm tra API danh mục trên MySQL thật, gồm 38 điểm đến nạp từ Flyway:
  * khách xem được không cần đăng nhập, lọc đúng, admin thêm/sửa/xóa và các quy tắc nghiệp vụ.
  */
 @SpringBootTest

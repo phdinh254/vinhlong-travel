@@ -4,8 +4,8 @@
 alter table bookings add column cancellation_fee bigint not null default 0 check (cancellation_fee >= 0);
 
 create table payments (
-    id             bigserial primary key,
-    booking_id     bigint not null references bookings (id),
+    id             bigint auto_increment primary key,
+    booking_id     bigint not null,
     amount         bigint not null check (amount > 0),                 -- đồng
     method         varchar(20) not null check (method in ('VNPAY', 'BANK_TRANSFER', 'CASH')),
     status         varchar(20) not null check (status in ('PENDING', 'SUCCEEDED', 'FAILED')),
@@ -14,9 +14,11 @@ create table payments (
     bank_code      varchar(20),
     proof_url      varchar(500),                                       -- ảnh chứng từ khi xác nhận thủ công
     note           varchar(500),
-    confirmed_by   bigint references accounts (id),                    -- admin xác nhận thủ công
-    paid_at        timestamp,
-    created_at     timestamp not null,
-    raw_response   varchar(2000)                                       -- dữ liệu VNPay gửi về, để tra soát
+    confirmed_by   bigint,                    -- admin xác nhận thủ công
+    paid_at        datetime(6),
+    created_at     datetime(6) not null,
+    raw_response   varchar(2000),                                      -- dữ liệu VNPay gửi về, để tra soát
+    foreign key (booking_id) references bookings (id),
+    foreign key (confirmed_by) references accounts (id)
 );
 create index payments_booking_idx on payments (booking_id);

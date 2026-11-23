@@ -32,7 +32,7 @@ public class Article {
     @Column(length = 500)
     private String summary;
 
-    @Column(nullable = false, columnDefinition = "text")
+    @Column(nullable = false, columnDefinition = "mediumtext")
     private String content;
 
     @Column(length = 500)

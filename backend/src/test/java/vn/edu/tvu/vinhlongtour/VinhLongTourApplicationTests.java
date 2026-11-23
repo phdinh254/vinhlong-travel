@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Kiểm tra cả ứng dụng khởi động được trên PostgreSQL thật: Flyway chạy, Hibernate kiểm tra
+ * Kiểm tra cả ứng dụng khởi động được trên MySQL thật: Flyway chạy, Hibernate kiểm tra
  * cấu trúc bảng, health báo UP, Swagger có tài liệu API, API chưa đăng nhập trả lỗi đúng dạng chung.
  */
 @SpringBootTest

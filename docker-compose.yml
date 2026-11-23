@@ -1,22 +1,26 @@
-# CSDL PostgreSQL cho môi trường phát triển. Chạy: docker compose up -d
+# CSDL MySQL cho môi trường phát triển. Chạy: docker compose up -d
 # Tài khoản chỉ dùng trên máy cá nhân; khớp giá trị mặc định trong backend/src/main/resources/application.yml
 services:
-  postgres:
-    image: postgres:17-alpine
-    container_name: vinhlongtour-db
+  mysql:
+    image: mysql:8.4
+    container_name: vinhlongtour-mysql
+    # utf8mb4_0900_as_ci: không phân biệt hoa/thường nhưng phân biệt dấu tiếng Việt ("Chùa Âng" khác "Chua Ang")
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_as_ci"]
     environment:
-      POSTGRES_DB: vinhlongtour
-      POSTGRES_USER: vinhlong
-      POSTGRES_PASSWORD: vinhlong
+      MYSQL_DATABASE: vinhlongtour
+      MYSQL_USER: vinhlong
+      MYSQL_PASSWORD: vinhlong
+      MYSQL_ROOT_PASSWORD: vinhlong-root
+      TZ: Asia/Ho_Chi_Minh
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT:-3306}:3306"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - mysqldata:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U vinhlong -d vinhlongtour"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uvinhlong -pvinhlong --silent"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 20
 
 volumes:
-  pgdata:
+  mysqldata:

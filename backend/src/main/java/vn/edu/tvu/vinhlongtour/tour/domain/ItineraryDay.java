@@ -53,8 +53,14 @@ public class ItineraryDay {
     ItineraryDay(Itinerary itinerary, int dayNumber, Itinerary.DayPlan plan) {
         this.itinerary = itinerary;
         this.dayNumber = dayNumber;
+        apply(plan);
+    }
+
+    /** Ghi đè tiêu đề, mô tả và toàn bộ hoạt động của ngày này, giữ nguyên số ngày. */
+    void apply(Itinerary.DayPlan plan) {
         this.title = plan.title().trim();
         this.description = plan.description();
+        activities.clear();
         LocalTime previous = null;
         for (int i = 0; i < plan.activities().size(); i++) {
             Itinerary.ActivityPlan a = plan.activities().get(i);
