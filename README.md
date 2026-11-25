@@ -126,11 +126,51 @@ Chạy backend với mật khẩu admin khác thì thêm `--env-var "adminPasswo
 | [`docs/KE_HOACH_BACKEND.md`](docs/KE_HOACH_BACKEND.md) | Kế hoạch, kiến trúc, OOP áp dụng ở đâu, thuật toán gợi ý lịch trình (TOPTW + Iterated Local Search) và bảng so sánh với cách tham lam |
 | [`docs/OOP.md`](docs/OOP.md) | Đóng gói, kế thừa, đa hình, trừu tượng, mẫu thiết kế: nằm ở lớp nào, file nào (dùng cho báo cáo) |
 | [`docs/API_CHANGES.md`](docs/API_CHANGES.md) | Đối chiếu API cũ → mới theo từng trang frontend |
-| [`docs/diagrams/class-diagram.drawio.png`](docs/diagrams/class-diagram.drawio.png) | Sơ đồ lớp các lớp chính (mở file `.drawio` hoặc chính file `.png` bằng draw.io để sửa) |
-| [`docs/diagrams/erd.drawio.png`](docs/diagrams/erd.drawio.png) | ERD 37 bảng, sinh từ các file migration |
-| [`docs/diagrams/use-case.drawio.png`](docs/diagrams/use-case.drawio.png) | Sơ đồ use case: khách vãng lai, khách hàng, admin, cổng thanh toán, Google (còn ghi VNPay, chưa vẽ lại theo payOS) |
-| [`docs/diagrams/sequence-booking.drawio.png`](docs/diagrams/sequence-booking.drawio.png), [`sequence-planner.drawio.png`](docs/diagrams/sequence-planner.drawio.png) | Sơ đồ tuần tự: đặt tour và thanh toán (còn vẽ theo VNPay, chưa cập nhật payOS); gợi ý lịch trình |
+| [`docs/diagrams/`](docs/diagrams/) | 9 sơ đồ UML, ERD và triển khai, xem mục [Sơ đồ](#sơ-đồ) bên dưới |
 | [`docs/data/`](docs/data/) | 38 điểm đến thật (CSV), nguồn và độ tin cậy từng dòng |
+
+## Sơ đồ
+
+Mọi sơ đồ nằm trong [`docs/diagrams/`](docs/diagrams/). File `.drawio.png` có nhúng sẵn sơ đồ: mở chính file ảnh (hoặc file `.drawio` cùng tên) bằng draw.io để sửa, rồi xuất lại PNG.
+
+| Sơ đồ | Nội dung |
+|---|---|
+| [Use case](docs/diagrams/use-case.drawio.png) | Chức năng của khách vãng lai, khách hàng, admin; tác nhân ngoài payOS, Google |
+| [Lớp](docs/diagrams/class-diagram.drawio.png) | Các lớp chính theo gói nghiệp vụ, kế thừa `NamedItem`/`MoneyTransaction`, interface `ScoringCriterion` |
+| [ERD](docs/diagrams/erd.drawio.png) | 37 bảng MySQL, sinh từ các file migration |
+| [Tuần tự: đặt tour](docs/diagrams/sequence-booking.drawio.png) | Khóa dòng đợt, tính giá theo tuổi, giữ chỗ 30 phút |
+| [Tuần tự: thanh toán payOS](docs/diagrams/sequence-payment.drawio.png) | Tạo link, webhook có chữ ký, trang kết quả hỏi lại payOS, không cộng tiền trùng |
+| [Tuần tự: gợi ý lịch trình](docs/diagrams/sequence-planner.drawio.png) | Chấm điểm đa hình (`ScoringCriterion`), thuật toán Iterated Local Search |
+| [Trạng thái đơn](docs/diagrams/state-booking.drawio.png) | 6 trạng thái của `BookingStatus`, 11 bước chuyển hợp lệ và sự kiện gây ra từng bước |
+| [Hoạt động: hủy tour và hoàn tiền](docs/diagrams/activity-cancellation.drawio.png) | Khách gửi yêu cầu, hệ thống tính phí phạt, admin duyệt/từ chối, hoàn tiền |
+| [Triển khai](docs/diagrams/deployment.drawio.png) | Docker Compose: nginx, backend, MySQL, volume; kết nối payOS, Google |
+
+### Use case
+![Sơ đồ use case](docs/diagrams/use-case.drawio.png)
+
+### Lớp
+![Sơ đồ lớp](docs/diagrams/class-diagram.drawio.png)
+
+### ERD
+![ERD](docs/diagrams/erd.drawio.png)
+
+### Tuần tự: đặt tour
+![Sơ đồ tuần tự đặt tour](docs/diagrams/sequence-booking.drawio.png)
+
+### Tuần tự: thanh toán payOS
+![Sơ đồ tuần tự thanh toán payOS](docs/diagrams/sequence-payment.drawio.png)
+
+### Tuần tự: gợi ý lịch trình
+![Sơ đồ tuần tự gợi ý lịch trình](docs/diagrams/sequence-planner.drawio.png)
+
+### Trạng thái đơn
+![Sơ đồ trạng thái đơn](docs/diagrams/state-booking.drawio.png)
+
+### Hoạt động: hủy tour và hoàn tiền
+![Sơ đồ hoạt động hủy tour và hoàn tiền](docs/diagrams/activity-cancellation.drawio.png)
+
+### Triển khai
+![Sơ đồ triển khai Docker](docs/diagrams/deployment.drawio.png)
 
 ## Cấu trúc thư mục
 

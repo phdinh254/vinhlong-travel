@@ -11,8 +11,12 @@ Sơ đồ đi kèm (trong `docs/diagrams/`, mở bằng draw.io):
 | Sơ đồ lớp (các lớp chính) | `class-diagram.drawio.png` |
 | ERD (37 bảng) | `erd.drawio.png` |
 | Use case | `use-case.drawio.png` |
-| Tuần tự: đặt tour và thanh toán VNPay | `sequence-booking.drawio.png` |
+| Tuần tự: đặt tour | `sequence-booking.drawio.png` |
+| Tuần tự: thanh toán payOS (tạo link, webhook, trang kết quả) | `sequence-payment.drawio.png` |
 | Tuần tự: gợi ý lịch trình | `sequence-planner.drawio.png` |
+| Trạng thái của đơn (`BookingStatus`) | `state-booking.drawio.png` |
+| Hoạt động: hủy tour và hoàn tiền | `activity-cancellation.drawio.png` |
+| Triển khai bằng Docker | `deployment.drawio.png` |
 
 ## 1. Đóng gói (encapsulation)
 
@@ -58,7 +62,7 @@ Các lớp con của entity (`Passenger`, `Payment`, `CancellationRequest`...) c
 
 ## 5. Value object (đối tượng giá trị bất biến)
 
-`AgeRange`, `GeoPoint`, `TimeWindow`, `PenaltyTier`, `TourImage` là `record` (bất biến). Constructor tự kiểm tra dữ liệu, ví dụ tọa độ ngoài phạm vi báo `INVALID_COORDINATES`, giờ mở sau giờ đóng báo `INVALID_OPENING_HOURS`. Các record này có thêm hành vi: `AgeRange.contains(age)`, `AgeRange.overlaps(other)`.
+`AgeRange`, `GeoPoint`, `TimeWindow`, `PenaltyTier`, `TourImage` là `record` (bất biến). Constructor tự kiểm tra dữ liệu, ví dụ tọa độ ngoài phạm vi báo `INVALID_COORDINATES`, giờ mở sau giờ đóng báo `INVALID_OPENING_HOURS`. Các record này có thêm hành vi: `AgeRange.contains(age)`, `AgeRange.overlaps(other)`. Kết quả trả về từ payOS cũng là record: `PayOsGateway.CreatedLink`, `PayOsGateway.PaymentInfo` (có `isPaid()`, `isClosedWithoutPayment()`).
 
 ## 6. Mẫu thiết kế
 
@@ -66,7 +70,7 @@ Các lớp con của entity (`Passenger`, `Payment`, `CancellationRequest`...) c
 |---|---|---|
 | **Strategy** | `ScoringCriterion` và 3 cài đặt | Thêm tiêu chí chấm điểm mới chỉ cần thêm lớp, không sửa thuật toán |
 | **Prototype** | `Itinerary.copy()`, gọi trong constructor của `Departure` | Mỗi đợt khởi hành giữ bản sao riêng của lịch trình mẫu; sửa tour không làm đổi các đợt đã tạo |
-| **State** (bằng enum) | `BookingStatus` | Quy định các bước chuyển trạng thái hợp lệ của đơn ở một chỗ |
+| **State** (bằng enum) | `BookingStatus` | Quy định các bước chuyển trạng thái hợp lệ của đơn ở một chỗ (vẽ ở `state-booking.drawio.png`) |
 | **Template / hook** | `MoneyTransaction.signedAmount()` dùng `direction()` do lớp con cài | Phần chung viết một lần ở lớp cha, phần khác nhau để lớp con quyết định |
 | **Static factory** | `ApiException.badRequest(...)`, `notFound(...)`, `conflict(...)`; `Payment.online(...)`, `Payment.manual(...)` | Tạo đối tượng đúng trạng thái ban đầu, tên hàm nói rõ ý nghĩa |
 | **Aggregate** | `Booking` sở hữu `Passenger`, `Payment`, `Refund`, `CancellationRequest`, `DepartureTransfer` | Mọi thay đổi đi qua `Booking`, khóa dòng đơn một lần là an toàn cho cả nhóm dữ liệu |
@@ -82,12 +86,12 @@ Các lớp con của entity (`Passenger`, `Payment`, `CancellationRequest`...) c
 
 ## 8. Các nguyên tắc SOLID dễ thấy
 
-- **S – mỗi lớp một việc:** `PriceCalculator` chỉ tính giá; `VnPayGateway` chỉ ký và kiểm chữ ký VNPay; `ImageStorage` chỉ lưu ảnh.
+- **S – mỗi lớp một việc:** `PriceCalculator` chỉ tính giá; `PayOsGateway` chỉ nói chuyện với payOS (ký yêu cầu, gọi API, kiểm chữ ký webhook), còn ghi nhận tiền là việc của `PaymentService` và `Booking`; `ImageStorage` chỉ lưu ảnh.
 - **O – mở để mở rộng, đóng để sửa:** thêm tiêu chí chấm điểm, thêm cách tính phụ thu hay thêm loại khoản tiền đều là thêm lớp/giá trị mới, không sửa code đang chạy.
 - **L – thay lớp con cho lớp cha:** ở đâu cần `MoneyTransaction` thì `Payment` hay `Refund` đều dùng được; ở đâu cần `NamedItem` thì `Region`, `TourCategory`, `Amenity` đều dùng được.
 - **D – phụ thuộc vào trừu tượng:** service phụ thuộc interface repository, `TripPlannerService` làm việc với danh sách `ScoringCriterion`.
 
 ## 9. Bằng chứng chạy đúng
 
-- 153 test tự động (`./mvnw verify`), gồm test riêng cho từng quy tắc ở trên, ví dụ: tổng sổ tiền luôn bằng số tiền đơn đang giữ (`BookingCancellationTest`), ví dụ tính tay của thuật toán gợi ý ra đúng từng số (`IteratedLocalSearchTest`).
-- Bộ Postman 144 request (`backend/postman/VinhLong Tour API`).
+- 151 test tự động (`./mvnw verify`), gồm test riêng cho từng quy tắc ở trên, ví dụ: tổng sổ tiền luôn bằng số tiền đơn đang giữ (`BookingCancellationTest`), ví dụ tính tay của thuật toán gợi ý ra đúng từng số (`IteratedLocalSearchTest`), thanh toán payOS chạy với một payOS giả dựng ngay trong test (`PaymentIntegrationTests`).
+- Bộ Postman 142 request (`backend/postman/VinhLong Tour API`).
