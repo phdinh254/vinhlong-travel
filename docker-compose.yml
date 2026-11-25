@@ -1,6 +1,38 @@
-# CSDL MySQL cho môi trường phát triển. Chạy: docker compose up -d
+# Chạy cả hệ thống (MySQL + backend + frontend): docker compose up -d --build  → http://localhost:8080
+# Chỉ chạy CSDL để tự chạy backend bằng ./mvnw:   docker compose up -d mysql
 # Tài khoản chỉ dùng trên máy cá nhân; khớp giá trị mặc định trong backend/src/main/resources/application.yml
 services:
+  backend:
+    build: ./backend
+    container_name: vinhlongtour-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/vinhlongtour
+      # dev: có sẵn mật khẩu admin, khóa JWT và nạp dữ liệu demo (xem README).
+      # Không truyền biến rỗng (JWT_SECRET=...): Spring coi chuỗi rỗng là đã đặt và bỏ qua giá trị mặc định của dev
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      CORS_ORIGINS: http://localhost:8080,http://localhost:5173
+      VNPAY_RETURN_URL: http://localhost:8080/thanh-toan/ket-qua
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    ports:
+      - "8081:8081"   # Swagger: http://localhost:8081/swagger-ui.html
+    volumes:
+      - uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    container_name: vinhlongtour-frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+
   mysql:
     image: mysql:8.4
     container_name: vinhlongtour-mysql
@@ -24,3 +56,4 @@ services:
 
 volumes:
   mysqldata:
+  uploads:
