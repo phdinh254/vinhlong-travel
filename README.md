@@ -3,14 +3,15 @@
 
 Đồ án môn **Lập trình ứng dụng hướng đối tượng**: website giới thiệu du lịch, đặt tour và gợi ý lịch trình cho khách du lịch tỉnh Vĩnh Long mới (khu vực Vĩnh Long, Bến Tre, Trà Vinh cũ).
 
-> Backend đã viết lại xong trên nhánh `hoanglong` (10 giai đoạn, xem [`docs/KE_HOACH_BACKEND.md`](docs/KE_HOACH_BACKEND.md)).
-> Frontend đã chuyển sang API mới `/api/v1` (đối chiếu API cũ → mới ở [`docs/API_CHANGES.md`](docs/API_CHANGES.md)) và có thêm trang **Gợi ý lịch trình** (`/goi-y-lich-trinh`).
+> Backend viết lại theo 10 giai đoạn (xem [`docs/KE_HOACH_BACKEND.md`](docs/KE_HOACH_BACKEND.md)); frontend gọi API mới `/api/v1` (đối chiếu API cũ → mới ở [`docs/API_CHANGES.md`](docs/API_CHANGES.md)) và có trang **Gợi ý lịch trình** (`/goi-y-lich-trinh`). Thanh toán trực tuyến qua **payOS** (chuyển khoản ngân hàng, quét mã VietQR).
 
 | Thành phần | Công nghệ |
 |---|---|
 | Backend | Java 21, Spring Boot 4.1 (Web MVC, Data JPA, Validation, Security + JWT, Actuator), Flyway, springdoc-openapi (Swagger) |
 | CSDL | MySQL 8.4 chạy bằng Docker — **không dùng XAMPP** (XAMPP cài MariaDB, không phải MySQL) |
 | Frontend | React 19 + Vite, React Router, Axios |
+| Thanh toán | payOS (API v2): tạo link thanh toán, webhook có chữ ký HMAC-SHA256 |
+| Đóng gói | Docker Compose: MySQL + backend + frontend (nginx) |
 | Kiểm thử | JUnit 5, Testcontainers (MySQL thật trong Docker), Postman |
 
 ## Chạy toàn bộ bằng Docker (chỉ cần Docker Desktop)
@@ -22,6 +23,16 @@ docker compose up -d --build
 Lần đầu mất vài phút để build. Sau đó mở http://localhost:8080 (trang web), Swagger ở http://localhost:8081/swagger-ui.html. Ba container: `mysql`, `backend` (profile `dev`, có dữ liệu demo và tài khoản ở bảng dưới), `frontend` (nginx phục vụ trang và chuyển `/api`, `/uploads` sang backend). Ảnh tải lên nằm trong volume `uploads`, không mất khi khởi động lại. Sửa code xong thì chạy lại lệnh trên để build lại.
 
 Trang web gọi API qua chính địa chỉ `http://localhost:8080`; mở bằng địa chỉ khác (IP máy, tên miền) thì phải build lại frontend với `VITE_API_URL` tương ứng (`frontend/Dockerfile`).
+
+Muốn bấm thanh toán thật, tạo file `.env` cạnh `docker-compose.yml` (đã có trong `.gitignore`, không đưa lên git) rồi chạy lại lệnh trên:
+
+```bash
+PAYOS_CLIENT_ID=...
+PAYOS_API_KEY=...
+PAYOS_CHECKSUM_KEY=...
+```
+
+Cách lấy khóa xem mục [Thanh toán payOS](#thanh-toán-payos). Không có khóa thì mọi chức năng khác vẫn chạy, riêng nút thanh toán báo `PAYOS_NOT_CONFIGURED`; admin vẫn xác nhận chuyển khoản/tiền mặt bằng tay được.
 
 ## Chạy để phát triển (máy mới clone về)
 
@@ -69,11 +80,20 @@ ADMIN_PASSWORD=MatKhauAdminCuaBan JWT_SECRET=chuoi-ngau-nhien-it-nhat-32-ky-tu .
 | `JWT_SECRET` | *trống* | Khóa ký token đăng nhập, ít nhất 32 ký tự. Để trống: sinh khóa ngẫu nhiên mỗi lần chạy, phải đăng nhập lại sau khi khởi động lại backend |
 | `GOOGLE_CLIENT_ID` | *trống* | Client ID (loại Web application) trên Google Cloud Console, giống `VITE_GOOGLE_CLIENT_ID` của frontend. Để trống thì đăng nhập Google báo `GOOGLE_NOT_CONFIGURED` |
 | `CORS_ORIGINS` | `http://localhost:5173` | Địa chỉ frontend được gọi API, nhiều địa chỉ cách nhau bằng dấu phẩy |
-| `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET` | *trống* | Mã website và khóa bí mật VNPay (đăng ký sandbox tại https://sandbox.vnpayment.vn/devreg/). Để trống thì tạo link thanh toán báo `VNPAY_NOT_CONFIGURED`. Profile `dev` dùng khóa giả: tạo link được nhưng trang VNPay sẽ báo sai chữ ký, muốn thanh toán thử thật thì đặt khóa sandbox của nhóm |
-| `VNPAY_RETURN_URL` | `http://localhost:5173/thanh-toan/ket-qua` | Trang frontend VNPay đưa khách về; trang này gọi `GET /api/v1/payments/vnpay/return` kèm nguyên chuỗi tham số VNPay |
-| `VNPAY_PROCESS_ON_RETURN` | `true` | Ghi nhận kết quả ngay ở trang kết quả (dữ liệu có chữ ký nên tin được). Cần khi chạy localhost vì VNPay không gọi IPN vào máy cá nhân được. Khi có tên miền thật, khai báo IPN URL `https://<backend>/api/v1/payments/vnpay/ipn` trên cổng VNPay |
+| `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY` | *trống* | Ba khóa của kênh thanh toán payOS (xem [Thanh toán payOS](#thanh-toán-payos)). Để trống thì tạo link thanh toán báo `PAYOS_NOT_CONFIGURED`; profile `dev` cũng không có sẵn khóa |
+| `PAYOS_RETURN_URL`, `PAYOS_CANCEL_URL` | `http://localhost:5173/thanh-toan/ket-qua` | Trang frontend payOS đưa khách về sau khi trả tiền / bấm hủy. Chạy bằng Docker thì `docker-compose.yml` đã đặt về cổng 8080 |
+| `PAYOS_API_URL` | `https://api-merchant.payos.vn` | Địa chỉ API payOS (test tự dựng payOS giả và đổi biến này) |
 | `UPLOAD_DIR` | `uploads` (trong thư mục `backend`) | Nơi lưu ảnh admin tải lên, phục vụ ở `http://localhost:8081/uploads/<tên file>`. Chỉ nhận JPEG, PNG, GIF, WebP, tối đa 5 MB |
 | `SERVER_PORT`, `DB_URL`, `DB_USER`, `DB_PASSWORD` | khớp `docker-compose.yml` | Cổng backend và kết nối CSDL |
+
+## Thanh toán payOS
+
+1. Đăng ký tài khoản miễn phí ở https://my.payos.vn, liên kết một tài khoản ngân hàng, tạo **kênh thanh toán** và chép **Client ID**, **Api Key**, **Checksum Key** vào ba biến `PAYOS_*` ở trên.
+2. Khách bấm thanh toán ở trang đơn → backend tạo link (`POST /api/v1/payments/payos`) → khách chuyển khoản hoặc quét mã VietQR trên trang payOS. Link hết hạn sau 15 phút; mỗi đơn chỉ có một link đang chờ.
+3. Backend ghi nhận tiền theo hai đường, đường nào đến trước cũng chỉ cộng tiền một lần:
+   - **Trang kết quả**: payOS đưa khách về `/thanh-toan/ket-qua?orderCode=...`, frontend gọi `GET /api/v1/payments/payos/return`; backend **hỏi lại payOS** trạng thái thật (không tin tham số trên đường dẫn). Đường này đủ khi chạy trên máy cá nhân.
+   - **Webhook**: khi có tên miền thật, khai báo `https://<tên miền>/api/v1/payments/payos/webhook` ở mục webhook của kênh thanh toán. Dữ liệu sai chữ ký hoặc sai số tiền bị bỏ qua.
+4. Chuyển khoản/tiền mặt ngoài payOS: admin xác nhận ở trang chi tiết đơn (`POST /api/v1/admin/bookings/{id}/payments`).
 
 ## Kiểm thử
 
@@ -82,11 +102,11 @@ cd backend
 ./mvnw verify
 ```
 
-Cần Docker Desktop đang chạy: test tích hợp tự bật một MySQL tạm trong Docker và xóa đi sau khi xong. Có test riêng cho từng giai đoạn, gồm: hai người tranh chỗ cuối chỉ một người được, IPN VNPay gửi hai lần chỉ ghi một lần, chữ ký VNPay khớp bản cài độc lập bằng Python, ví dụ tính tay của thuật toán gợi ý lịch trình ra đúng từng số, dashboard đếm đúng.
+Cần Docker Desktop đang chạy: test tích hợp tự bật một MySQL tạm trong Docker và xóa đi sau khi xong. Có test riêng cho từng giai đoạn, gồm: hai người tranh chỗ cuối chỉ một người được, webhook payOS gửi hai lần chỉ ghi một lần, trang kết quả không ghi nhận khi payOS chưa báo đã trả (dùng một payOS giả chạy trong test), chữ ký payOS khớp một bản tính độc lập trong test, ví dụ tính tay của thuật toán gợi ý lịch trình ra đúng từng số, dashboard đếm đúng.
 
 ### Kiểm thử API bằng Postman
 
-Bộ request có kiểm tra tự động nằm ở `backend/postman/VinhLong Tour API/` (định dạng thư mục YAML của Postman 12, mỗi giai đoạn một thư mục). Biến `adminPassword`, `vnpHashSecret` có sẵn giá trị khớp profile `dev`.
+Bộ request có kiểm tra tự động nằm ở `backend/postman/VinhLong Tour API/` (định dạng thư mục YAML của Postman 12, mỗi giai đoạn một thư mục). Biến `adminPassword` có sẵn giá trị khớp profile `dev`. Giai đoạn 5 kiểm phần payOS khi backend chưa có khóa payOS.
 
 1. Trong Postman 12, mở thư mục `backend/postman/VinhLong Tour API` vào workspace của bạn (file liên kết workspace là của riêng từng máy nên không đưa lên git).
 2. Bật backend (profile `dev`), bấm chuột phải vào collection → **Run** để chạy toàn bộ theo thứ tự.
@@ -97,7 +117,7 @@ Chạy bằng dòng lệnh (Postman CLI, không cần đăng nhập Postman), t�
 npx -p postman-cli postman collection run "backend/postman/VinhLong Tour API"
 ```
 
-Chạy backend với mật khẩu/khóa khác thì thêm `--env-var "adminPassword=..." --env-var "vnpHashSecret=..."`.
+Chạy backend với mật khẩu admin khác thì thêm `--env-var "adminPassword=..."`.
 
 ## Tài liệu
 
@@ -108,22 +128,22 @@ Chạy backend với mật khẩu/khóa khác thì thêm `--env-var "adminPasswo
 | [`docs/API_CHANGES.md`](docs/API_CHANGES.md) | Đối chiếu API cũ → mới theo từng trang frontend |
 | [`docs/diagrams/class-diagram.drawio.png`](docs/diagrams/class-diagram.drawio.png) | Sơ đồ lớp các lớp chính (mở file `.drawio` hoặc chính file `.png` bằng draw.io để sửa) |
 | [`docs/diagrams/erd.drawio.png`](docs/diagrams/erd.drawio.png) | ERD 37 bảng, sinh từ các file migration |
-| [`docs/diagrams/use-case.drawio.png`](docs/diagrams/use-case.drawio.png) | Sơ đồ use case: khách vãng lai, khách hàng, admin, VNPay, Google |
-| [`docs/diagrams/sequence-booking.drawio.png`](docs/diagrams/sequence-booking.drawio.png), [`sequence-planner.drawio.png`](docs/diagrams/sequence-planner.drawio.png) | Sơ đồ tuần tự: đặt tour và thanh toán VNPay; gợi ý lịch trình |
+| [`docs/diagrams/use-case.drawio.png`](docs/diagrams/use-case.drawio.png) | Sơ đồ use case: khách vãng lai, khách hàng, admin, cổng thanh toán, Google (còn ghi VNPay, chưa vẽ lại theo payOS) |
+| [`docs/diagrams/sequence-booking.drawio.png`](docs/diagrams/sequence-booking.drawio.png), [`sequence-planner.drawio.png`](docs/diagrams/sequence-planner.drawio.png) | Sơ đồ tuần tự: đặt tour và thanh toán (còn vẽ theo VNPay, chưa cập nhật payOS); gợi ý lịch trình |
 | [`docs/data/`](docs/data/) | 38 điểm đến thật (CSV), nguồn và độ tin cậy từng dòng |
 
 ## Cấu trúc thư mục
 
 ```
 vinhlong-travel/
-├── docker-compose.yml        # MySQL cho môi trường phát triển
+├── docker-compose.yml        # MySQL + backend + frontend (chỉ bật mysql khi tự chạy backend)
 ├── backend/
 │   ├── src/main/java/vn/edu/tvu/vinhlongtour/
 │   │   ├── auth/             # tài khoản, đăng nhập, JWT, Google
 │   │   ├── catalog/          # khu vực, loại hình, dịch vụ, loại khách, điểm đón, phụ thu, chính sách hủy, điểm đến
 │   │   ├── tour/             # tour, lịch trình, đợt khởi hành
 │   │   ├── booking/          # đặt tour, giữ chỗ, tính giá
-│   │   ├── payment/          # VNPay, ghi nhận thanh toán thủ công
+│   │   ├── payment/          # payOS (tạo link, trang kết quả, webhook), ghi nhận thanh toán thủ công
 │   │   ├── cancellation/     # hủy tour, hoàn tiền, chuyển đợt
 │   │   ├── planner/          # gợi ý lịch trình (thuật toán ILS) và lịch trình đã lưu
 │   │   ├── content/          # tin tức, cấu hình trang, liên hệ
@@ -131,8 +151,8 @@ vinhlong-travel/
 │   │   ├── dashboard/        # số liệu trang quản trị
 │   │   ├── demo/             # dữ liệu demo (chỉ profile dev)
 │   │   └── common/           # lỗi chung, phân trang, cấu hình
-│   ├── src/main/resources/db/migration/   # Flyway: V1__... tới V9__...
+│   ├── src/main/resources/db/migration/   # Flyway: V1__... tới V10__...
 │   └── postman/              # bộ kiểm thử Postman + file mẫu để thử upload
-├── frontend/                 # React + Vite, gọi API /api/v1
+├── frontend/                 # React + Vite, gọi API /api/v1; Dockerfile + nginx.conf để chạy bằng Docker
 └── docs/                     # kế hoạch, đối chiếu API, sơ đồ, dữ liệu điểm đến
 ```
