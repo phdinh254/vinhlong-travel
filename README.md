@@ -1,4 +1,5 @@
-# VinhLong Tour — đặt tour và gợi ý lịch trình du lịch tỉnh Vĩnh Long
+# XÂY DỰNG WEBSITE GIỚI THIỆU DU LỊCH KẾT HỢP ĐẶC TOUR TẠI ĐỊA BÀN TỈNH VĨNH LONG
+
 
 Đồ án môn **Lập trình ứng dụng hướng đối tượng**: website giới thiệu du lịch, đặt tour và gợi ý lịch trình cho khách du lịch tỉnh Vĩnh Long mới (khu vực Vĩnh Long, Bến Tre, Trà Vinh cũ).
 
