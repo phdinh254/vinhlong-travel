@@ -46,7 +46,7 @@ const DI_KEM = [
 /** Hỗ trợ trước, trong và sau chuyến đi */
 const HO_TRO = [
   { ic: 'chat', ten: 'Tư vấn chọn tour', mo: 'Gợi ý hành trình theo số ngày, ngân sách và thành phần đoàn.', to: '/lien-he', cta: 'Gửi yêu cầu' },
-  { ic: 'card', ten: 'Đặt & thanh toán trực tuyến', mo: 'Giữ chỗ bằng tiền cọc hoặc thanh toán đủ qua VNPay.', to: '/tour', cta: 'Chọn tour' },
+  { ic: 'card', ten: 'Đặt & thanh toán trực tuyến', mo: 'Giữ chỗ bằng tiền cọc hoặc thanh toán đủ qua payOS.', to: '/tour', cta: 'Chọn tour' },
   { ic: 'search', ten: 'Tra cứu đơn mọi lúc', mo: 'Xem trạng thái đơn bằng mã đơn và số điện thoại, không cần tài khoản.', to: '/tra-cuu', cta: 'Tra cứu đơn' },
   { ic: 'refresh', ten: 'Hủy tour minh bạch', mo: 'Gửi yêu cầu hủy trực tuyến, phí hủy theo mốc ngày được công bố trước.', to: '/chinh-sach/huy-tour', cta: 'Xem chính sách' },
   { ic: 'users', ten: 'Tour riêng cho nhóm', mo: 'Điều chỉnh lịch trình các tour có sẵn cho gia đình, cơ quan, trường học.', to: '/lien-he', cta: 'Yêu cầu báo giá' },

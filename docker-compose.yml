@@ -14,8 +14,13 @@ services:
       # Không truyền biến rỗng (JWT_SECRET=...): Spring coi chuỗi rỗng là đã đặt và bỏ qua giá trị mặc định của dev
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       CORS_ORIGINS: http://localhost:8080,http://localhost:5173
-      VNPAY_RETURN_URL: http://localhost:8080/thanh-toan/ket-qua
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      # Khóa payOS đặt trong file .env cạnh file này (xem README); thiếu thì nút thanh toán báo PAYOS_NOT_CONFIGURED
+      PAYOS_CLIENT_ID: ${PAYOS_CLIENT_ID:-}
+      PAYOS_API_KEY: ${PAYOS_API_KEY:-}
+      PAYOS_CHECKSUM_KEY: ${PAYOS_CHECKSUM_KEY:-}
+      PAYOS_RETURN_URL: http://localhost:8080/thanh-toan/ket-qua
+      PAYOS_CANCEL_URL: http://localhost:8080/thanh-toan/ket-qua
     ports:
       - "8081:8081"   # Swagger: http://localhost:8081/swagger-ui.html
     volumes:

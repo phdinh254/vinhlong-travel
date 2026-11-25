@@ -26,7 +26,7 @@ export const TRAI_NGHIEM = [
 export const QUY_TRINH = [
   ['Chọn tour', 'Tìm theo điểm đến, khu vực, loại hình, thời lượng và xem lịch khởi hành.'],
   ['Đặt tour', 'Chọn đợt khởi hành, điểm đón, nhập thông tin hành khách.'],
-  ['Thanh toán & xác nhận', 'Đặt cọc hoặc thanh toán qua VNPay; nhân viên liên hệ xác nhận.'],
+  ['Thanh toán & xác nhận', 'Đặt cọc hoặc thanh toán qua payOS; nhân viên liên hệ xác nhận.'],
   ['Trải nghiệm', 'Lên xe tại điểm đón và bắt đầu hành trình khám phá miền Tây.'],
 ]
 
@@ -40,7 +40,7 @@ export const SO_LIEU = [
 /** ĐÁNH GIÁ MINH HỌA – thay bằng phản hồi thật (có sự đồng ý của khách) */
 export const DANH_GIA = [
   { ten: 'Ngọc Anh', noi: 'TP. Hồ Chí Minh', sao: 5, tour: 'Cù lao An Bình 1 ngày', thang: 'Tháng 10/2026', nd: 'Đi xuồng qua rạch dừa nước, ăn trái cây tại vườn. Hướng dẫn viên rất nhiệt tình, kể chuyện vui.' },
-  { ten: 'Minh Khoa', noi: 'Cần Thơ', sao: 5, tour: 'Xứ dừa Bến Tre 2N1Đ', thang: 'Tháng 9/2026', nd: 'Đặt tour nhanh, thanh toán VNPay tiện. Lịch trình đúng như mô tả, homestay sạch sẽ.' },
+  { ten: 'Minh Khoa', noi: 'Cần Thơ', sao: 5, tour: 'Xứ dừa Bến Tre 2N1Đ', thang: 'Tháng 9/2026', nd: 'Đặt tour nhanh, thanh toán payOS tiện. Lịch trình đúng như mô tả, homestay sạch sẽ.' },
   { ten: 'Thu Hà', noi: 'Hà Nội', sao: 5, tour: 'Văn hóa Khmer Trà Vinh 2N1Đ', thang: 'Tháng 9/2026', nd: 'Chùa Khmer ở Trà Vinh đẹp ngoài sức tưởng tượng. Sẽ quay lại cùng cả gia đình.' },
   { ten: 'Quốc Bảo', noi: 'Bình Dương', sao: 4, tour: 'Xứ dừa Bến Tre 2N1Đ', thang: 'Tháng 8/2026', nd: 'Món ăn ngon, chủ nhà dễ thương. Mong có thêm thời gian tự do ở cồn.' },
   { ten: 'Lan Chi', noi: 'Đà Nẵng', sao: 5, tour: 'Cù lao An Bình 1 ngày', thang: 'Tháng 7/2026', nd: 'Lần đầu xuống miền Tây, mọi thứ chậm rãi và bình yên. Rất đáng đi một lần.' },
@@ -53,7 +53,7 @@ export const FAQ = [
   ['Tôi có cần tạo tài khoản không?',
     'Không bắt buộc. Bạn có thể đặt tour và tra cứu đơn bằng mã đơn và số điện thoại ở mục “Tra cứu đơn”. Tài khoản giúp xem lại lịch sử đặt tour thuận tiện hơn.'],
   ['Có hỗ trợ thanh toán trực tuyến không?',
-    'Có. Bạn có thể đặt cọc hoặc thanh toán toàn bộ qua cổng VNPay ngay trên trang đơn đặt tour.'],
+    'Có. Bạn có thể đặt cọc hoặc thanh toán toàn bộ qua cổng payOS ngay trên trang đơn đặt tour.'],
   ['Có thể hủy hoặc thay đổi tour không?',
     'Bạn có thể gửi yêu cầu hủy trên trang đơn đặt tour. Phí hủy tính theo số ngày trước khởi hành, được ghi rõ trong mục “Chính sách hủy” của từng tour.'],
   ['Giá tour đã bao gồm những gì?',
