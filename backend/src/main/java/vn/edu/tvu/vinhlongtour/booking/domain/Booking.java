@@ -293,7 +293,7 @@ public class Booking {
     /** Admin hoàn tiền cho khách; không hoàn quá số tiền cần hoàn ({@link #refundDue()}). */
     public Refund refund(long amount, PaymentMethod method, String transactionNo, String proofUrl, String refundNote,
                          CancellationRequest request, Account admin, LocalDateTime now) {
-        if (method == PaymentMethod.VNPAY) {
+        if (method == PaymentMethod.PAYOS) {
             throw ApiException.badRequest("INVALID_METHOD", "Hoàn tiền bằng chuyển khoản hoặc tiền mặt");
         }
         if (amount > refundDue()) {
@@ -394,7 +394,7 @@ public class Booking {
         return (status == BookingStatus.PENDING_PAYMENT && !isHoldExpired(now)) || status == BookingStatus.DEPOSITED;
     }
 
-    /** Có link VNPay đang chờ được tạo sau thời điểm {@code since} (link VNPay còn hiệu lực). */
+    /** Có link payOS đang chờ được tạo sau thời điểm {@code since} (link payOS còn hiệu lực). */
     public boolean hasPendingOnlinePaymentSince(LocalDateTime since) {
         return payments.stream().anyMatch(p -> p.isPending() && p.getCreatedAt().isAfter(since));
     }
@@ -405,11 +405,11 @@ public class Booking {
         return payment;
     }
 
-    /** VNPay báo giao dịch thành công: cộng tiền vào đơn. */
+    /** payOS báo giao dịch thành công: cộng tiền vào đơn. */
     public void confirmOnlinePayment(Payment payment, String transactionNo, String bankCode, LocalDateTime paidAt,
                                      String rawResponse, LocalDateTime now) {
         payment.markSucceeded(transactionNo, bankCode, paidAt, rawResponse);
-        receive(payment.getAmount(), null, "Thanh toán VNPay, mã giao dịch " + transactionNo, now);
+        receive(payment.getAmount(), null, "Thanh toán payOS, mã giao dịch " + transactionNo, now);
     }
 
     public void failOnlinePayment(Payment payment, String rawResponse) {
@@ -419,8 +419,8 @@ public class Booking {
     /** Admin xác nhận đã nhận tiền chuyển khoản/tiền mặt; không nhận quá số còn phải trả. */
     public Payment recordManualPayment(long amount, PaymentMethod method, String transactionNo, String proofUrl,
                                        String note, Account admin, LocalDateTime now) {
-        if (method == PaymentMethod.VNPAY) {
-            throw ApiException.badRequest("INVALID_METHOD", "Thanh toán VNPay được ghi nhận tự động, không xác nhận tay");
+        if (method == PaymentMethod.PAYOS) {
+            throw ApiException.badRequest("INVALID_METHOD", "Thanh toán payOS được ghi nhận tự động, không xác nhận tay");
         }
         if (amount > remainingAmount()) {
             throw ApiException.badRequest("AMOUNT_EXCEEDS_REMAINING", "Số tiền vượt quá số còn phải trả (" + remainingAmount() + "đ)");

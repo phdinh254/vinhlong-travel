@@ -6,11 +6,11 @@ scripts:
     code: |-
       pm.test('Trả 200', () => pm.response.to.have.status(200));
       const b = pm.response.json();
-      pm.test('Trạng thái DEPOSITED, đã thu đúng tiền cọc', () => {
-        pm.expect(b.status).to.eql('DEPOSITED');
-        pm.expect(b.paidAmount).to.eql(Number(pm.collectionVariables.get('vnpAmount')));
-        pm.expect(b.payments[0].status).to.eql('SUCCEEDED');
+      pm.test('Vẫn chờ thanh toán, không có khoản thanh toán treo', () => {
+        pm.expect(b.status).to.eql('PENDING_PAYMENT');
+        pm.expect(b.paidAmount).to.eql(0);
+        pm.expect(b.payments).to.have.lengthOf(0);
       });
       pm.collectionVariables.set('payRemaining', b.remainingAmount);
     language: text/javascript
-order: 10000
+order: 8000

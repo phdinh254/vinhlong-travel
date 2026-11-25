@@ -55,8 +55,8 @@ Backend đã viết lại hoàn toàn (nhánh `hoanglong`). Frontend hiện vẫ
 | `POST /api/bookings` | `POST /api/v1/bookings` | Thêm `contactName`, `contactPhone`, `contactEmail`, `note`. Đăng nhập rồi thì đơn tự gắn vào tài khoản. Lỗi hay gặp: `SEAT_NOT_ENOUGH`, `ADULT_REQUIRED`, `DEPARTURE_NOT_OPEN` |
 | `GET /api/bookings/{maDon}` | `GET /api/v1/bookings/lookup?code=&phone=` (khách vãng lai) hoặc `GET /api/v1/me/bookings/{code}` (đã đăng nhập) | Tra cứu luôn cần **mã đơn + số điện thoại** |
 | `GET /api/me/bookings` | `GET /api/v1/me/bookings` | |
-| `POST /api/payments/vnpay/create` `{ maDon, sdt, loai }` | `POST /api/v1/payments/vnpay` `{ bookingCode, phone, type: "DEPOSIT" \| "FULL" }` (`DEPOSIT`: tiền cọc tối thiểu, chỉ khi chưa trả gì; `FULL`: toàn bộ số còn lại) | Trả `{ paymentUrl, amount, reference, expiresAt }` → chuyển trang tới `paymentUrl` như cũ |
-| `GET /api/payments/vnpay/return?...` | `GET /api/v1/payments/vnpay/return?...` | Truyền nguyên chuỗi tham số VNPay. Trả `{ validSignature, success, bookingCode, amount, ... }` |
+| `POST /api/payments/vnpay/create` `{ maDon, sdt, loai }` | `POST /api/v1/payments/payos` `{ bookingCode, phone, type: "DEPOSIT" \| "FULL" }` (`DEPOSIT`: tiền cọc tối thiểu, chỉ khi chưa trả gì; `FULL`: toàn bộ số còn lại) | Cổng thanh toán đổi từ VNPay sang payOS. Trả `{ checkoutUrl, qrCode, amount, reference, expiresAt }` → chuyển trang tới `checkoutUrl` (`qrCode` là chuỗi VietQR nếu muốn tự vẽ mã QR). Backend chưa có khóa payOS → 503 `PAYOS_NOT_CONFIGURED` |
+| `GET /api/payments/vnpay/return?...` | `GET /api/v1/payments/payos/return?orderCode=...` | Lấy `orderCode` trên đường dẫn trang kết quả payOS trả về. Backend hỏi lại payOS rồi trả `{ paid, status, bookingCode, amount, transactionNo, message }` |
 | `POST /api/bookings/{maDon}/yeu-cau-huy` | `POST /api/v1/bookings/{code}/cancellation-requests` | `{ scope: "FULL" \| "PARTIAL", passengerIds, reason, phone }`. Đơn chưa trả đồng nào được hủy ngay; đã trả thì chờ admin duyệt. Phản hồi có `penaltyPercent`, `penaltyAmount`, `estimatedRefund` để hiện cho khách |
 
 ### Quản trị tour và đợt khởi hành (`Tours.jsx`, `TourForm.jsx` trong admin)
@@ -133,7 +133,7 @@ Mỗi danh mục đều có `GET` (danh sách), `POST` (thêm), `PUT /{id}` (s�
 | Trạng thái đợt | `MO_BAN` → `OPEN`, `DONG` → `CLOSED`, `HUY` → `CANCELLED`. Không còn `HET_CHO` và `DA_KHOI_HANH`: dùng `seatsLeft == 0` và `bookable` để hiện "Hết chỗ"/"Đã đóng" |
 | Cách tính phụ thu | `THEO_NGUOI` → `PER_PERSON`, `THEO_DON` → `PER_BOOKING`, `THEO_SO_LUONG` → `PER_UNIT` |
 | Loại hoạt động lịch trình | Bỏ (`LOAI_HOAT_DONG`); hoạt động chỉ còn giờ, tiêu đề, mô tả và điểm đến gắn kèm |
-| Thanh toán | Phương thức `VNPAY`, `CASH`, `BANK_TRANSFER`; trạng thái `PENDING`, `SUCCEEDED`, `FAILED` |
+| Thanh toán | Phương thức `PAYOS`, `CASH`, `BANK_TRANSFER`; trạng thái `PENDING`, `SUCCEEDED`, `FAILED` |
 | Yêu cầu hủy | Phạm vi `FULL`/`PARTIAL`; trạng thái `PENDING`, `APPROVED`, `REJECTED` |
 | Chuyên mục bài viết | `TIN_TUC` → `NEWS`, `VAN_HOA` → `CULTURE`, `SU_KIEN` → `EVENT`, `KINH_NGHIEM` → `TIPS` |
 | Trạng thái bài viết | `NHAP` → `DRAFT`, `XUAT_BAN` → `PUBLISHED` |

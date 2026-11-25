@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/payments/payos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "bookingCode": "{{payBookingCode}}",
+      "phone": "0907654321",
+      "type": "DEPOSIT"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      // Profile dev không có khóa payOS. Đặt PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY thì request này trả 201 kèm checkoutUrl
+      pm.test('Trả 503 khi backend chưa có khóa payOS', () => pm.response.to.have.status(503));
+      pm.test('code = PAYOS_NOT_CONFIGURED', () => pm.expect(pm.response.json().code).to.eql('PAYOS_NOT_CONFIGURED'));
+    language: text/javascript
+order: 5000

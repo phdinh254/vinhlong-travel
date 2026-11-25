@@ -127,7 +127,7 @@ export default function Tours() {
           <div className="tr-stats">
             <span><b>{data ? data.total : '…'}</b> tour phù hợp</span>
             <span><b>3</b> khu vực</span>
-            <span>Thanh toán qua <b>VNPay</b></span>
+            <span>Thanh toán qua <b>payOS</b></span>
           </div>
         </div>
       </header>

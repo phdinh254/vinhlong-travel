@@ -197,7 +197,7 @@ export default function Contact() {
           <Link to="/tour" className="ct-tile book">
             <small>Đã chọn được tour?</small>
             <b>Đặt tour trực tuyến</b>
-            <span>Chọn lịch, giữ chỗ và thanh toán qua VNPay →</span>
+            <span>Chọn lịch, giữ chỗ và thanh toán qua payOS →</span>
           </Link>
           <Link to="/tra-cuu" className="ct-tile">
             <small>Đã có đơn đặt tour?</small>

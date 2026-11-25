@@ -1,6 +1,5 @@
 package vn.edu.tvu.vinhlongtour.payment;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,18 +14,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import vn.edu.tvu.vinhlongtour.auth.security.CurrentAccount;
 import vn.edu.tvu.vinhlongtour.booking.web.BookingDtos.BookingDetail;
-import vn.edu.tvu.vinhlongtour.common.AppProperties;
 import vn.edu.tvu.vinhlongtour.payment.PaymentDtos.ManualPaymentRequest;
-import vn.edu.tvu.vinhlongtour.payment.PaymentDtos.VnPayLinkRequest;
-import vn.edu.tvu.vinhlongtour.payment.PaymentDtos.VnPayLinkResponse;
-import vn.edu.tvu.vinhlongtour.payment.PaymentDtos.VnPayReturnResponse;
+import vn.edu.tvu.vinhlongtour.payment.PaymentDtos.PayOsLinkRequest;
+import vn.edu.tvu.vinhlongtour.payment.PaymentDtos.PayOsLinkResponse;
+import vn.edu.tvu.vinhlongtour.payment.PaymentDtos.PayOsReturnResponse;
 import vn.edu.tvu.vinhlongtour.payment.PaymentService.CallbackOutcome;
-import vn.edu.tvu.vinhlongtour.payment.PaymentService.CallbackResult;
 
 import java.util.Map;
 
 /**
- * API thanh toán: khách tạo link VNPay; trang kết quả và IPN nhận dữ liệu VNPay gửi về;
+ * API thanh toán: khách tạo link payOS; trang kết quả và webhook ghi nhận kết quả payOS;
  * admin xác nhận chuyển khoản/tiền mặt.
  */
 @RestController
@@ -35,49 +32,47 @@ public class PaymentController {
     private static final Logger log = LoggerFactory.getLogger(PaymentController.class);
 
     private final PaymentService service;
-    private final boolean processOnReturn;
 
-    public PaymentController(PaymentService service, AppProperties props) {
+    public PaymentController(PaymentService service) {
         this.service = service;
-        this.processOnReturn = props.vnpay().processOnReturn();
     }
 
-    @PostMapping("/api/v1/payments/vnpay")
+    @PostMapping("/api/v1/payments/payos")
     @ResponseStatus(HttpStatus.CREATED)
-    public VnPayLinkResponse createLink(@Valid @RequestBody VnPayLinkRequest r, Authentication auth, HttpServletRequest request) {
-        // VNPay chỉ nhận địa chỉ IPv4; khi chạy localhost địa chỉ thường là IPv6 (::1)
-        String ip = request.getRemoteAddr().contains(":") ? "127.0.0.1" : request.getRemoteAddr();
-        return service.createVnPayLink(r, CurrentAccount.idOrNull(auth), ip);
+    public PayOsLinkResponse createLink(@Valid @RequestBody PayOsLinkRequest r, Authentication auth) {
+        return service.createPayOsLink(r, CurrentAccount.idOrNull(auth));
     }
 
     /**
-     * Frontend gọi API này với nguyên chuỗi tham số VNPay gắn vào đường dẫn trang kết quả.
-     * Khi bật {@code process-on-return} thì ghi nhận luôn kết quả (cần khi chạy localhost, VNPay không gọi IPN được).
+     * Frontend gọi API này với {@code orderCode} payOS gắn vào đường dẫn trang kết quả. Backend hỏi lại payOS
+     * trạng thái thật rồi mới ghi nhận, nên không tin tham số trên đường dẫn.
      */
-    @GetMapping("/api/v1/payments/vnpay/return")
-    public VnPayReturnResponse vnpayReturn(@RequestParam Map<String, String> params) {
-        CallbackOutcome outcome = processOnReturn ? service.processVnPayCallback(params) : null;
-        boolean valid = outcome == null || outcome.result() != CallbackResult.INVALID_SIGNATURE;
-        // Chỉ báo thành công khi hệ thống đã ghi nhận được (không sai số tiền, có giao dịch), không chỉ dựa vào mã VNPay
-        boolean recorded = outcome == null || outcome.result() == CallbackResult.CONFIRMED || outcome.result() == CallbackResult.ALREADY_CONFIRMED;
-        boolean success = valid && recorded && "00".equals(params.get("vnp_ResponseCode")) && "00".equals(params.get("vnp_TransactionStatus"));
-        String message = !valid ? "Dữ liệu thanh toán không hợp lệ"
-                : !recorded ? "Không ghi nhận được giao dịch, vui lòng liên hệ để được hỗ trợ"
-                : success ? "Thanh toán thành công"
-                : "Giao dịch không thành công (mã " + params.get("vnp_ResponseCode") + ")";
-        String reference = params.getOrDefault("vnp_TxnRef", "");
-        return new VnPayReturnResponse(valid, success, outcome == null ? reference.split("-")[0] : outcome.bookingCode(),
-                outcome == null ? null : outcome.amount(), params.get("vnp_TransactionNo"), params.get("vnp_ResponseCode"), message);
+    @GetMapping("/api/v1/payments/payos/return")
+    public PayOsReturnResponse payOsReturn(@RequestParam String orderCode) {
+        CallbackOutcome o = service.syncFromPayOs(orderCode);
+        String message = switch (o.result()) {
+            case NOT_FOUND -> "Không tìm thấy giao dịch";
+            case INVALID_AMOUNT, INVALID_SIGNATURE -> "Không ghi nhận được giao dịch, vui lòng liên hệ để được hỗ trợ";
+            case STILL_PENDING -> "Giao dịch đang chờ xử lý";
+            case CONFIRMED, ALREADY_CONFIRMED -> o.paid() ? "Thanh toán thành công" : "Giao dịch không thành công";
+        };
+        return new PayOsReturnResponse(o.paid(), o.status(), o.bookingCode(), o.amount(), o.transactionNo(), message);
     }
 
-    /** VNPay gọi thẳng vào đây (server tới server) để báo kết quả; khai báo URL này làm IPN URL trên cổng VNPay. */
-    @GetMapping("/api/v1/payments/vnpay/ipn")
-    public Map<String, String> vnpayIpn(@RequestParam Map<String, String> params) {
+    /**
+     * payOS gọi thẳng vào đây (server tới server) khi có tiền vào; khai báo URL này làm webhook trên my.payos.vn.
+     * Luôn trả 200 (kể cả dữ liệu không hợp lệ) vì payOS gửi một bản thử khi xác nhận URL và chỉ cần biết đã nhận.
+     */
+    @PostMapping("/api/v1/payments/payos/webhook")
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> payOsWebhook(@RequestBody Map<String, Object> body) {
         try {
-            return service.processVnPayCallback(params).result().toIpnResponse();
+            Map<String, Object> data = body.get("data") instanceof Map<?, ?> m ? (Map<String, Object>) m : null;
+            CallbackOutcome o = service.processWebhook(data, body.get("signature") == null ? null : String.valueOf(body.get("signature")));
+            return Map.of("success", true, "result", o.result().name());
         } catch (RuntimeException e) {
-            log.error("Lỗi khi xử lý IPN VNPay {}", params.get("vnp_TxnRef"), e);
-            return Map.of("RspCode", "99", "Message", "Unknown error");
+            log.error("Lỗi khi xử lý webhook payOS {}", body, e);
+            return Map.of("success", false);
         }
     }
 

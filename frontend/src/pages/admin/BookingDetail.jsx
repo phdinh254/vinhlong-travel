@@ -95,7 +95,7 @@ function RefundModal({ d, onClose, onDone }) {
       <div className="grid grid-3">
         <div className="field"><label>Theo yêu cầu hủy</label><select value={f.cancellationRequestId} onChange={(e) => setF({ ...f, cancellationRequestId: e.target.value })}><option value="">— Không —</option>{approved.map((y) => <option key={y.id} value={y.id}>#{y.id} – dự kiến {money(y.estimatedRefund)}</option>)}</select></div>
         <div className="field"><label>Số tiền hoàn</label><input type="number" value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} /></div>
-        <div className="field"><label>Phương thức</label><select value={f.method} onChange={(e) => setF({ ...f, method: e.target.value })}><option value="BANK_TRANSFER">Chuyển khoản</option><option value="CASH">Tiền mặt</option><option value="VNPAY">VNPay</option></select></div>
+        <div className="field"><label>Phương thức</label><select value={f.method} onChange={(e) => setF({ ...f, method: e.target.value })}><option value="BANK_TRANSFER">Chuyển khoản</option><option value="CASH">Tiền mặt</option></select></div>
       </div>
       <div className="field"><label>Mã giao dịch hoàn</label><input value={f.transactionNo} onChange={(e) => setF({ ...f, transactionNo: e.target.value })} /></div>
       <ImagePicker label="Ảnh chứng từ hoàn tiền" value={f.proofUrl} onChange={(v) => setF({ ...f, proofUrl: v })} />

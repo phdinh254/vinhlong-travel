@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/payments/payos/webhook"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "code": "00",
+      "desc": "success",
+      "success": true,
+      "data": { "orderCode": 123, "amount": 270000, "reference": "FT123", "code": "00", "desc": "success" },
+      "signature": "chu-ky-gia"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200 (payOS chỉ cần biết đã nhận)', () => pm.response.to.have.status(200));
+      pm.test('result = INVALID_SIGNATURE, không ghi nhận gì', () => pm.expect(pm.response.json().result).to.eql('INVALID_SIGNATURE'));
+    language: text/javascript
+order: 6000

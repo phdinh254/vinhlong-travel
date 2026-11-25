@@ -101,7 +101,7 @@ export const CACH_TINH_PHU_THU = {
   PER_UNIT: 'Theo số lượng',
 }
 
-export const PHUONG_THUC_TT = { VNPAY: 'VNPay', CASH: 'Tiền mặt', BANK_TRANSFER: 'Chuyển khoản' }
+export const PHUONG_THUC_TT = { PAYOS: 'payOS', CASH: 'Tiền mặt', BANK_TRANSFER: 'Chuyển khoản' }
 export const TRANG_THAI_TT = { PENDING: ['Đang chờ', 'warn'], SUCCEEDED: ['Thành công', 'ok'], FAILED: ['Thất bại', 'bad'] }
 export const TRANG_THAI_YC_HUY = { PENDING: ['Chờ duyệt', 'warn'], APPROVED: ['Đã duyệt', 'ok'], REJECTED: ['Từ chối', 'bad'] }
 

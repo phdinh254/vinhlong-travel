@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/payments/payos/return?orderCode=123"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Trả 200', () => pm.response.to.have.status(200));
+      pm.test('paid = false: không tin tham số trên đường dẫn', () => pm.expect(pm.response.json().paid).to.eql(false));
+    language: text/javascript
+order: 7000

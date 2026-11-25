@@ -5,12 +5,12 @@ import { useAuth } from '../../auth.jsx'
 import { Alert, Loading, Modal } from '../../components/ui.jsx'
 import BookingInfo from '../../components/BookingInfo.jsx'
 
-/** Xem đơn + thanh toán VNPay + gửi yêu cầu hủy (khách đăng nhập, hoặc vãng lai bằng mã đơn + SĐT) */
+/** Xem đơn + thanh toán payOS + gửi yêu cầu hủy (khách đăng nhập, hoặc vãng lai bằng mã đơn + SĐT) */
 export default function BookingView() {
   const { maDon } = useParams()
   const [sp] = useSearchParams()
   const { user } = useAuth()
-  // Khách vãng lai: nhớ SĐT trong phiên để quay lại từ trang kết quả VNPay vẫn xem được đơn
+  // Khách vãng lai: nhớ SĐT trong phiên để quay lại từ trang kết quả payOS vẫn xem được đơn
   const sdt = sp.get('sdt') || sessionStorage.getItem(`sdt_${maDon}`) || ''
   useEffect(() => { if (sdt) sessionStorage.setItem(`sdt_${maDon}`, sdt) }, [maDon, sdt])
   const loc = useLocation()
@@ -33,8 +33,8 @@ export default function BookingView() {
   const pay = async (type) => {
     setBusy(true); setErr('')
     try {
-      const { data } = await api.post('/api/v1/payments/vnpay', { bookingCode: d.code, phone: sdt || d.contact.phone, type })
-      window.location.href = data.paymentUrl
+      const { data } = await api.post('/api/v1/payments/payos', { bookingCode: d.code, phone: sdt || d.contact.phone, type })
+      window.location.href = data.checkoutUrl
     } catch (e) { setErr(errMsg(e)); setBusy(false) }
   }
 
@@ -72,13 +72,13 @@ export default function BookingView() {
               <p className="small">Còn phải thanh toán: <b className="price">{money(d.remainingAmount)}</b></p>
               {d.paidAmount === 0 && d.minimumFirstPayment < d.totalAmount && (
                 <button className="btn secondary" style={{ width: '100%', marginBottom: 8 }} disabled={busy} onClick={() => pay('DEPOSIT')}>
-                  Đặt cọc {money(d.minimumFirstPayment)} qua VNPay
+                  Đặt cọc {money(d.minimumFirstPayment)} qua payOS
                 </button>
               )}
               <button className="btn" style={{ width: '100%' }} disabled={busy} onClick={() => pay('FULL')}>
-                Thanh toán {money(d.remainingAmount)} qua VNPay
+                Thanh toán {money(d.remainingAmount)} qua payOS
               </button>
-              <p className="muted small">Bạn sẽ được chuyển sang cổng VNPay để thanh toán. Link thanh toán có hiệu lực 15 phút.</p>
+              <p className="muted small">Bạn sẽ được chuyển sang trang payOS để chuyển khoản hoặc quét mã QR. Link thanh toán có hiệu lực 15 phút.</p>
             </>
           ) : <p className="muted small">Đơn không cần thanh toán thêm.</p>}
           {coTheHuy && (
