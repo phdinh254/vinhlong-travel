@@ -12,12 +12,22 @@
 | Frontend | React 19 + Vite, React Router, Axios |
 | Kiểm thử | JUnit 5, Testcontainers (MySQL thật trong Docker), Postman |
 
-## Chạy nhanh (máy mới clone về)
+## Chạy toàn bộ bằng Docker (chỉ cần Docker Desktop)
+
+```bash
+docker compose up -d --build
+```
+
+Lần đầu mất vài phút để build. Sau đó mở http://localhost:8080 (trang web), Swagger ở http://localhost:8081/swagger-ui.html. Ba container: `mysql`, `backend` (profile `dev`, có dữ liệu demo và tài khoản ở bảng dưới), `frontend` (nginx phục vụ trang và chuyển `/api`, `/uploads` sang backend). Ảnh tải lên nằm trong volume `uploads`, không mất khi khởi động lại. Sửa code xong thì chạy lại lệnh trên để build lại.
+
+Trang web gọi API qua chính địa chỉ `http://localhost:8080`; mở bằng địa chỉ khác (IP máy, tên miền) thì phải build lại frontend với `VITE_API_URL` tương ứng (`frontend/Dockerfile`).
+
+## Chạy để phát triển (máy mới clone về)
 
 Cần cài sẵn **JDK 21** (ví dụ `winget install EclipseAdoptium.Temurin.21.JDK`, kiểm tra `java -version` ra `21`; máy còn JDK cũ thì đặt `JAVA_HOME` trỏ tới JDK 21) và **Docker Desktop** (đang mở). Không cần cài Maven.
 
 ```bash
-docker compose up -d
+docker compose up -d mysql
 cd backend
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
@@ -39,7 +49,7 @@ Khoảng 30 giây sau backend chạy ở http://localhost:8081. Bảng trong CSD
 
 Frontend (khi đã sửa theo API mới): `cd frontend && cp .env.example .env && npm install && npm run dev` → http://localhost:5173.
 
-Dừng CSDL: `docker compose down` (giữ dữ liệu) hoặc `docker compose down -v` (xóa sạch, lần chạy sau nạp lại demo). Nếu cổng 3306 đã bị chiếm (thường do XAMPP hoặc MySQL cài sẵn trên máy đang chạy): tắt chương trình đó, hoặc chạy `DB_PORT=3307 docker compose up -d` và đặt `DB_URL=jdbc:mysql://localhost:3307/vinhlongtour`.
+Dừng CSDL: `docker compose down` (giữ dữ liệu) hoặc `docker compose down -v` (xóa sạch, lần chạy sau nạp lại demo). Nếu cổng 3306 đã bị chiếm (thường do XAMPP hoặc MySQL cài sẵn trên máy đang chạy): tắt chương trình đó, hoặc chạy `DB_PORT=3307 docker compose up -d mysql` và đặt `DB_URL=jdbc:mysql://localhost:3307/vinhlongtour`.
 
 Xem dữ liệu bằng công cụ quen thuộc (MySQL Workbench, DBeaver, HeidiSQL...): host `localhost`, cổng `3306`, CSDL `vinhlongtour`, tài khoản `vinhlong` / `vinhlong`.
 
