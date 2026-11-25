@@ -69,7 +69,7 @@ public abstract class MoneyTransaction {
     /** Lúc tiền chuyển xong; {@code null} khi chưa xong. */
     public abstract LocalDateTime settledAt();
 
-    /** Admin xác nhận/thực hiện; {@code null} khi hệ thống tự ghi nhận (VNPay). */
+    /** Admin xác nhận/thực hiện; {@code null} khi hệ thống tự ghi nhận (payOS). */
     public abstract Account handledBy();
 
     /** Số tiền có dấu: dương là tiền vào, âm là tiền ra. Cộng cả sổ tiền ra đúng số tiền công ty đang giữ của đơn. */

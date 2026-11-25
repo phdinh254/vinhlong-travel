@@ -13,7 +13,7 @@ import vn.edu.tvu.vinhlongtour.auth.domain.Account;
 import java.time.LocalDateTime;
 
 /**
- * Một lần thanh toán của đơn: qua VNPay (tạo ở trạng thái chờ, VNPay báo kết quả sau)
+ * Một lần thanh toán của đơn: qua payOS (tạo ở trạng thái chờ, payOS báo kết quả sau)
  * hoặc admin xác nhận chuyển khoản/tiền mặt (thành công ngay, kèm ảnh chứng từ).
  * Kế thừa {@link MoneyTransaction}: tiền đi vào, chỉ tính là đã chuyển khi thành công.
  * Chỉ được tạo qua {@link Booking}; tiền chỉ cộng vào đơn khi thanh toán chuyển sang thành công.
@@ -54,9 +54,9 @@ public class Payment extends MoneyTransaction {
         this.createdAt = createdAt;
     }
 
-    /** Thanh toán qua VNPay đang chờ kết quả. */
+    /** Thanh toán qua payOS đang chờ kết quả. */
     static Payment online(Booking booking, long amount, LocalDateTime now) {
-        return new Payment(booking, amount, PaymentMethod.VNPAY, null, null, null, PaymentStatus.PENDING, now);
+        return new Payment(booking, amount, PaymentMethod.PAYOS, null, null, null, PaymentStatus.PENDING, now);
     }
 
     /** Admin xác nhận đã nhận tiền chuyển khoản/tiền mặt. */
@@ -88,7 +88,7 @@ public class Payment extends MoneyTransaction {
         return confirmedBy;
     }
 
-    /** Mã tham chiếu gửi sang VNPay (vnp_TxnRef), gán sau khi đã có mã thanh toán trong CSDL. */
+    /** Mã đơn hàng (orderCode) gửi sang payOS, gán sau khi đã có mã thanh toán trong CSDL. */
     public void assignReference(String reference) {
         this.reference = reference;
     }

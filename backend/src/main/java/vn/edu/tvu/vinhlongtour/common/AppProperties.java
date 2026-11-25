@@ -11,16 +11,17 @@ import java.util.List;
  * phần lớn đọc từ biến môi trường để không phải ghi bí mật vào mã nguồn.
  */
 @ConfigurationProperties("app")
-public record AppProperties(Jwt jwt, Admin admin, Google google, Cors cors, Booking booking, VnPay vnpay, Upload upload) {
+public record AppProperties(Jwt jwt, Admin admin, Google google, Cors cors, Booking booking, PayOs payos, Upload upload) {
 
     /** Thư mục lưu ảnh admin tải lên; ảnh được phục vụ ở đường dẫn {@code /uploads/<tên file>}. */
     public record Upload(Path dir) {}
 
     /**
-     * Cấu hình cổng VNPay. {@code processOnReturn}: ghi nhận kết quả ngay khi khách quay về trang kết quả
-     * (dữ liệu có chữ ký VNPay nên tin được), cần khi chạy localhost vì VNPay không gọi IPN vào máy cá nhân được.
+     * Cấu hình cổng payOS: ba khóa lấy ở kênh thanh toán trên my.payos.vn; {@code returnUrl}/{@code cancelUrl} là trang
+     * frontend payOS chuyển khách về sau khi trả tiền/hủy; link thanh toán hết hạn sau {@code linkTimeout}.
      */
-    public record VnPay(String tmnCode, String hashSecret, String payUrl, String returnUrl, Duration linkTimeout, boolean processOnReturn) {}
+    public record PayOs(String clientId, String apiKey, String checksumKey, String apiUrl, String returnUrl, String cancelUrl,
+                        Duration linkTimeout) {}
 
     /** Thời gian giữ chỗ khi chưa thanh toán, và phần trăm đặt cọc tối thiểu. */
     public record Booking(Duration hold, int depositPercent) {}
