@@ -142,8 +142,8 @@ export default function About() {
         <div className="ab-cta">
           <div>
             <h2>Sẵn sàng khám phá Vĩnh Long?</h2>
-            {cfg.GIOI_THIEU
-              ? <div className="ab-org" dangerouslySetInnerHTML={{ __html: cfg.GIOI_THIEU }} />
+            {cfg.ABOUT_HTML
+              ? <div className="ab-org" dangerouslySetInnerHTML={{ __html: cfg.ABOUT_HTML }} />
               : <p>Chọn một hành trình để tự mình trải nghiệm sông nước, xứ dừa và văn hóa Khmer.</p>}
           </div>
           <div className="ab-cta-actions">

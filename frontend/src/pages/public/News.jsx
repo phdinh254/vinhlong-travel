@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import api, { fmtDate, imgUrl } from '../../api'
+import api, { fmtDate, imgUrl, pageCount } from '../../api'
 import { Pagination, Loading } from '../../components/ui.jsx'
-import { CHUYEN_MUC, tenChuyenMuc, anhMacDinh, phutDoc } from '../../content/chuyenMuc.js'
+import { CHUYEN_MUC, tenChuyenMuc, anhMacDinh } from '../../content/chuyenMuc.js'
 import './news.css'
 
 const PAGE_SIZE = 12
@@ -12,14 +12,14 @@ const SO_BAO = `Số tháng ${NOW.getMonth() + 1}/${NOW.getFullYear()}`
 /** Thứ tự ô trong lưới bento (4 cột): lớn 2×2, cao 1×2, ảnh, ghi chú, rộng 2×1, ảnh, ghi chú */
 const BENTO = ['feature', 'tall', 'photo', 'note', 'wide', 'photo', 'note leaf']
 
-const cover = (n) => imgUrl(n.anhBia) || anhMacDinh(n)
+const cover = (n) => imgUrl(n.coverImageUrl) || anhMacDinh(n)
 
 function Meta({ n, light }) {
   return (
     <div className={`nw-meta ${light ? 'light' : ''}`}>
-      <span className="nw-cat">{tenChuyenMuc(n.chuyenMuc)}</span>
-      <span>{fmtDate(n.ngayDang)}</span>
-      <span>{phutDoc(n.noiDung)} phút đọc</span>
+      <span className="nw-cat">{tenChuyenMuc(n.category)}</span>
+      <span>{fmtDate(n.publishedAt)}</span>
+      <span>{n.viewCount} lượt xem</span>
     </div>
   )
 }
@@ -32,8 +32,8 @@ function BentoItem({ n, kind }) {
       style={isNote ? undefined : { backgroundImage: `url(${cover(n)})` }}>
       <div className="nw-b-body">
         <Meta n={n} light={!isNote} />
-        <h3>{n.tieuDe}</h3>
-        {(kind === 'feature' || isNote) && n.tomTat && <p>{n.tomTat}</p>}
+        <h3>{n.title}</h3>
+        {(kind === 'feature' || isNote) && n.summary && <p>{n.summary}</p>}
         {isNote && <span className="nw-more">Đọc tiếp →</span>}
       </div>
     </Link>
@@ -47,8 +47,8 @@ function Row({ n }) {
       <Link to={`/tin-tuc/${n.slug}`} className="nw-row-img" style={{ backgroundImage: `url(${cover(n)})` }} aria-hidden="true" tabIndex={-1} />
       <div>
         <Meta n={n} />
-        <h3><Link to={`/tin-tuc/${n.slug}`}>{n.tieuDe}</Link></h3>
-        {n.tomTat && <p>{n.tomTat}</p>}
+        <h3><Link to={`/tin-tuc/${n.slug}`}>{n.title}</Link></h3>
+        {n.summary && <p>{n.summary}</p>}
       </div>
     </article>
   )
@@ -62,9 +62,9 @@ export default function News() {
 
   useEffect(() => {
     let alive = true
-    api.get('/api/public/tin-tuc', { params: { page, size: PAGE_SIZE, chuyenMuc: chuyenMuc || undefined } })
+    api.get('/api/v1/articles', { params: { page, size: PAGE_SIZE, category: chuyenMuc || undefined } })
       .then((r) => alive && setData(r.data))
-      .catch(() => alive && setData({ content: [], totalPages: 0 }))
+      .catch(() => alive && setData({ items: [], total: 0, size: PAGE_SIZE }))
     return () => { alive = false }
   }, [page, chuyenMuc])
 
@@ -78,11 +78,11 @@ export default function News() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const items = data?.content || []
+  const items = data?.items || []
   const showBento = page === 0
   const bento = showBento ? items.slice(0, BENTO.length) : []
   const rest = showBento ? items.slice(BENTO.length) : items
-  const popular = [...items].sort((a, b) => b.luotXem - a.luotXem).slice(0, 5)
+  const popular = [...items].sort((a, b) => b.viewCount - a.viewCount).slice(0, 5)
   const current = CHUYEN_MUC.find((c) => c.key === chuyenMuc)
 
   return (
@@ -113,7 +113,7 @@ export default function News() {
             {/* ---------- Bento ---------- */}
             {bento.length > 0 && (
               <section className="nw-bento" aria-label="Bài nổi bật">
-                {bento.map((n, i) => <BentoItem key={n.tinTucId} n={n} kind={BENTO[i]} />)}
+                {bento.map((n, i) => <BentoItem key={n.id} n={n} kind={BENTO[i]} />)}
               </section>
             )}
 
@@ -123,17 +123,17 @@ export default function News() {
                 <section>
                   {rest.length > 0 && <>
                     <h2 className="nw-h2">Mới cập nhật</h2>
-                    <div className="nw-list">{rest.map((n) => <Row key={n.tinTucId} n={n} />)}</div>
+                    <div className="nw-list">{rest.map((n) => <Row key={n.id} n={n} />)}</div>
                   </>}
-                  <Pagination page={page} totalPages={data.totalPages} onChange={(p) => go({ trang: p })} />
+                  <Pagination page={page} totalPages={pageCount(data)} onChange={(p) => go({ trang: p })} />
                 </section>
                 <aside className="nw-side">
                   <h2 className="nw-h2">Đọc nhiều</h2>
                   <ol className="nw-popular">
                     {popular.map((n) => (
-                      <li key={n.tinTucId}>
-                        <Link to={`/tin-tuc/${n.slug}`}>{n.tieuDe}</Link>
-                        <span>{tenChuyenMuc(n.chuyenMuc)} · {n.luotXem} lượt xem</span>
+                      <li key={n.id}>
+                        <Link to={`/tin-tuc/${n.slug}`}>{n.title}</Link>
+                        <span>{tenChuyenMuc(n.category)} · {n.viewCount} lượt xem</span>
                       </li>
                     ))}
                   </ol>

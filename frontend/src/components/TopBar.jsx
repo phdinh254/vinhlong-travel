@@ -27,7 +27,7 @@ export default function TopBar({ cfg = {} }) {
         <ul className="tb-info" aria-label="Thông tin liên hệ">
           {tel && <li><a href={`tel:${tel}`}><Icon name="phone" /><span className="tb-k">Hotline</span><b>{cfg.HOTLINE}</b></a></li>}
           {cfg.EMAIL && <li className="tb-hide-sm"><a href={`mailto:${cfg.EMAIL}`}><Icon name="mail" />{cfg.EMAIL}</a></li>}
-          {cfg.GIO_LAM_VIEC && <li className="tb-hide-md"><Icon name="clock" />{cfg.GIO_LAM_VIEC}</li>}
+          {cfg.SUPPORT_HOURS && <li className="tb-hide-md"><Icon name="clock" />{cfg.SUPPORT_HOURS}</li>}
         </ul>
         <div className="tb-right">
           <Link to="/tra-cuu" className="tb-link"><Icon name="search" />Tra cứu đơn</Link>

@@ -9,21 +9,21 @@ export default function NewsDetail() {
   const { slug } = useParams()
   const [n, setN] = useState(null)
   const [err, setErr] = useState('')
-  useEffect(() => { api.get(`/api/public/tin-tuc/${slug}`).then((r) => setN(r.data)).catch((e) => setErr(errMsg(e))) }, [slug])
+  useEffect(() => { api.get(`/api/v1/articles/${slug}`).then((r) => setN(r.data)).catch((e) => setErr(errMsg(e))) }, [slug])
   if (err) return <div className="container section"><Alert>{err}</Alert></div>
   if (!n) return <div className="container section"><Loading /></div>
   return (
     <article className="nw nw-article">
       <header className="container nw-article-head">
-        <Link to={`/tin-tuc?chuyenMuc=${n.chuyenMuc || 'TIN_TUC'}`} className="nw-back">← {tenChuyenMuc(n.chuyenMuc)}</Link>
-        <h1>{n.tieuDe}</h1>
-        {n.tomTat && <p className="nw-lead">{n.tomTat}</p>}
-        <div className="nw-meta"><span>{fmtDate(n.ngayDang)}</span><span>{phutDoc(n.noiDung)} phút đọc</span><span>{n.luotXem} lượt xem</span></div>
+        <Link to={`/tin-tuc?chuyenMuc=${n.category || 'NEWS'}`} className="nw-back">← {tenChuyenMuc(n.category)}</Link>
+        <h1>{n.title}</h1>
+        {n.summary && <p className="nw-lead">{n.summary}</p>}
+        <div className="nw-meta"><span>{fmtDate(n.publishedAt)}</span><span>{phutDoc(n.content)} phút đọc</span><span>{n.viewCount} lượt xem</span></div>
       </header>
       <div className="container">
-        <img className="nw-article-cover" src={imgUrl(n.anhBia) || anhMacDinh(n)} alt="" />
+        <img className="nw-article-cover" src={imgUrl(n.coverImageUrl) || anhMacDinh(n)} alt="" />
         {/* Nội dung HTML do quản trị viên soạn */}
-        <div className="prose nw-article-body" dangerouslySetInnerHTML={{ __html: n.noiDung }} />
+        <div className="prose nw-article-body" dangerouslySetInnerHTML={{ __html: n.content }} />
         <p className="nw-article-foot"><Link to="/tin-tuc">← Về trang Tin tức</Link></p>
       </div>
     </article>

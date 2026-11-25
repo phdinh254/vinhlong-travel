@@ -10,19 +10,20 @@ export default function PaymentResult() {
   const [err, setErr] = useState('')
 
   useEffect(() => {
-    api.get(`/api/payments/vnpay/return?${sp.toString()}`).then((x) => setR(x.data)).catch((e) => setErr(errMsg(e)))
+    api.get(`/api/v1/payments/vnpay/return?${sp.toString()}`).then((x) => setR(x.data)).catch((e) => setErr(errMsg(e)))
   }, [sp])
 
+  const ok = r?.validSignature && r?.success
   return (
     <div className="container section" style={{ maxWidth: 560 }}>
       <div className="card" style={{ textAlign: 'center' }}>
         {err ? <p className="alert error">{err}</p> : !r ? <Loading /> : (
           <>
-            <div style={{ fontSize: 48 }}>{r.hopLe && r.thanhCong ? '✅' : '⚠️'}</div>
-            <h2>{r.thongBao}</h2>
-            {r.soTien && <p>Số tiền: <b>{money(r.soTien)}</b></p>}
-            {r.maGiaoDich && <p className="muted small">Mã giao dịch VNPay: {r.maGiaoDich}</p>}
-            {r.maDon && <p><Link className="btn" to={`/don/${r.maDon}`}>Xem đơn {r.maDon}</Link></p>}
+            <div style={{ fontSize: 48 }}>{ok ? '✅' : '⚠️'}</div>
+            <h2>{r.message || (ok ? 'Thanh toán thành công' : 'Thanh toán chưa thành công')}</h2>
+            {r.amount != null && <p>Số tiền: <b>{money(r.amount)}</b></p>}
+            {r.transactionNo && <p className="muted small">Mã giao dịch VNPay: {r.transactionNo}</p>}
+            {r.bookingCode && <p><Link className="btn" to={`/don/${r.bookingCode}`}>Xem đơn {r.bookingCode}</Link></p>}
             <p className="muted small">Nếu đã trừ tiền nhưng đơn chưa cập nhật, vui lòng chờ vài phút hoặc liên hệ hotline.</p>
           </>
         )}

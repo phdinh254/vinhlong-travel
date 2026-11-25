@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import api, { errMsg, fmtDate, imgUrl, money } from '../../api'
+import api, { errMsg, fmtDate, imgUrl, money, loadCatalogs, EMPTY_CATALOGS } from '../../api'
 import { TourCard, Loading } from '../../components/ui.jsx'
 import { tenChuyenMuc, anhMacDinh } from '../../content/chuyenMuc.js'
 import { SO_NGAY } from '../../content/timTour.js'
+import { tenKhuVuc } from '../../tourUtils.js'
 import SearchSelect, { Icon } from '../../components/SearchSelect.jsx'
 import { DIEM_DEN, TRAI_NGHIEM, QUY_TRINH, SO_LIEU, DANH_GIA, FAQ } from '../../content/trangChu.js'
 import { useReveal } from '../../useReveal.js'
@@ -27,35 +28,35 @@ const ngayNgan = (v) => new Date(v).toLocaleDateString('vi-VN', { day: '2-digit'
 function tourLink(dm, { diemDen, loaiHinh }) {
   const has = (a, b) => a.toLowerCase().includes(b.toLowerCase())
   if (diemDen) {
-    const d = dm.diemDens.find((x) => has(x.tenDiemDen, diemDen))
-    return d ? `/tour?diemDenId=${d.diemDenId}` : `/tour?q=${encodeURIComponent(diemDen)}`
+    const d = dm.destinations.find((x) => has(x.name, diemDen))
+    return d ? `/tour?destinationId=${d.id}` : `/tour?q=${encodeURIComponent(diemDen)}`
   }
-  const l = dm.loaiHinhs.find((x) => has(x.ten, loaiHinh))
-  return l ? `/tour?loaiHinhId=${l.id}` : '/tour'
+  const l = dm.categories.find((x) => has(x.name, loaiHinh))
+  return l ? `/tour?categoryId=${l.id}` : '/tour'
 }
 
 export default function Home() {
   const [tours, setTours] = useState(null)
   const [tongTour, setTongTour] = useState(0)
   const [tin, setTin] = useState([])
-  const [dm, setDm] = useState({ loaiHinhs: [], khuVucs: [], diemDens: [] })
-  const [f, setF] = useState({ diemDenId: '', khuVucId: '', loaiHinhId: '', soNgay: '' })
+  const [dm, setDm] = useState(EMPTY_CATALOGS)
+  const [f, setF] = useState({ destinationId: '', regionId: '', categoryId: '', soNgay: '' })
   const nav = useNavigate()
   const root = useReveal()
 
   useEffect(() => {
     // Tour phổ biến: ưu tiên tour nổi bật, bổ sung tour khác cho đủ 3
     Promise.all([
-      api.get('/api/public/tours', { params: { noiBat: true, size: 3 } }),
-      api.get('/api/public/tours', { params: { size: 6 } }),
+      api.get('/api/v1/tours', { params: { featured: true, size: 3 } }),
+      api.get('/api/v1/tours', { params: { size: 6 } }),
     ]).then(([a, b]) => {
-      const list = [...a.data.content]
-      for (const t of b.data.content) if (list.length < 3 && !list.some((x) => x.tourId === t.tourId)) list.push(t)
+      const list = [...a.data.items]
+      for (const t of b.data.items) if (list.length < 3 && !list.some((x) => x.id === t.id)) list.push(t)
       setTours(list)
-      setTongTour(b.data.totalElements)
+      setTongTour(b.data.total)
     }).catch(() => setTours([]))
-    api.get('/api/public/tin-tuc', { params: { size: 3 } }).then((r) => setTin(r.data.content)).catch(() => {})
-    api.get('/api/public/danh-muc').then((r) => setDm(r.data)).catch(() => {})
+    api.get('/api/v1/articles', { params: { size: 3 } }).then((r) => setTin(r.data.items)).catch(() => {})
+    loadCatalogs().then(setDm)
   }, [])
 
   const search = (e) => {
@@ -65,7 +66,7 @@ export default function Home() {
   }
 
   const hero = tours?.[0]
-  const sapKhoiHanh = tours?.filter((t) => t.ngayKhoiHanh).sort((a, b) => a.ngayKhoiHanh.localeCompare(b.ngayKhoiHanh))[0]
+  const sapKhoiHanh = tours?.filter((t) => t.nextDepartureAt).sort((a, b) => a.nextDepartureAt.localeCompare(b.nextDepartureAt))[0]
 
   return (
     <div className="lp" ref={root}>
@@ -87,17 +88,17 @@ export default function Home() {
             <div className="lp-figure lp-in" style={{ '--d': '260ms', backgroundImage: `url(${HERO_NHAN_VAT})` }} role="img"
               aria-label="Người dân chèo xuồng ở chợ nổi miền Tây" />
             {hero && (
-              <Link to={`/tour/${hero.tourId}`} className="lp-float f1 lp-in" style={{ '--d': '520ms' }}>
-                <small>{hero.noiBat ? 'Tour nổi bật' : 'Tour gợi ý'}</small>
-                <b>{hero.tenTour}</b>
-                <span className="lp-float-price">{hero.giaTu ? `Từ ${money(hero.giaTu)}` : 'Liên hệ'}</span>
+              <Link to={`/tour/${hero.id}`} className="lp-float f1 lp-in" style={{ '--d': '520ms' }}>
+                <small>{hero.featured ? 'Tour nổi bật' : 'Tour gợi ý'}</small>
+                <b>{hero.name}</b>
+                <span className="lp-float-price">{hero.fromPrice ? `Từ ${money(hero.fromPrice)}` : 'Liên hệ'}</span>
               </Link>
             )}
             {sapKhoiHanh && (
-              <Link to={`/tour/${sapKhoiHanh.tourId}#lich-khoi-hanh`} className="lp-float f2 lp-in" style={{ '--d': '660ms' }}>
+              <Link to={`/tour/${sapKhoiHanh.id}#lich-khoi-hanh`} className="lp-float f2 lp-in" style={{ '--d': '660ms' }}>
                 <span className="ic" aria-hidden="true">📅</span>
-                <div><b>Khởi hành {ngayNgan(sapKhoiHanh.ngayKhoiHanh)}</b>
-                  <small>{sapKhoiHanh.choConLai != null ? `Còn ${sapKhoiHanh.choConLai} chỗ` : 'Đang nhận khách'}</small></div>
+                <div><b>Khởi hành {ngayNgan(sapKhoiHanh.nextDepartureAt)}</b>
+                  <small>Đang nhận khách</small></div>
               </Link>
             )}
             {tongTour > 0 && (
@@ -110,12 +111,12 @@ export default function Home() {
 
         {/* ---------- 03 Tìm tour ---------- */}
         <form className="lp-search lp-in" style={{ '--d': '420ms' }} onSubmit={search} aria-label="Tìm tour">
-          <SearchSelect label="Điểm đến" icon="pin" value={f.diemDenId} onChange={(v) => setF({ ...f, diemDenId: v })}
-            options={[{ value: '', label: 'Bạn muốn đi đâu?' }, ...dm.diemDens.map((d) => ({ value: d.diemDenId, label: d.tenDiemDen }))]} />
-          <SearchSelect label="Khu vực" icon="map" value={f.khuVucId} onChange={(v) => setF({ ...f, khuVucId: v })}
-            options={[{ value: '', label: 'Mọi khu vực' }, ...dm.khuVucs.map((k) => ({ value: k.id, label: k.ten.replace(/^Khu vực\s*/i, '') }))]} />
-          <SearchSelect label="Loại hình" icon="compass" value={f.loaiHinhId} onChange={(v) => setF({ ...f, loaiHinhId: v })}
-            options={[{ value: '', label: 'Mọi loại hình' }, ...dm.loaiHinhs.map((k) => ({ value: k.id, label: k.ten }))]} />
+          <SearchSelect label="Điểm đến" icon="pin" value={f.destinationId} onChange={(v) => setF({ ...f, destinationId: v })}
+            options={[{ value: '', label: 'Bạn muốn đi đâu?' }, ...dm.destinations.map((d) => ({ value: d.id, label: d.name }))]} />
+          <SearchSelect label="Khu vực" icon="map" value={f.regionId} onChange={(v) => setF({ ...f, regionId: v })}
+            options={[{ value: '', label: 'Mọi khu vực' }, ...dm.regions.map((k) => ({ value: k.id, label: tenKhuVuc(k.name) }))]} />
+          <SearchSelect label="Loại hình" icon="compass" value={f.categoryId} onChange={(v) => setF({ ...f, categoryId: v })}
+            options={[{ value: '', label: 'Mọi loại hình' }, ...dm.categories.map((k) => ({ value: k.id, label: k.name }))]} />
           <SearchSelect label="Thời lượng" icon="clock" value={f.soNgay} onChange={(v) => setF({ ...f, soNgay: v })}
             options={[{ value: '', label: 'Bao lâu cũng được' }, ...SO_NGAY.map((s) => ({ value: s.id, label: s.ten }))]} />
           <button className="lp-search-btn">
@@ -158,7 +159,7 @@ export default function Home() {
       <section className="lp-sec container">
         <Head eyebrow="Tour" title="Tour phổ biến" to="/tour" more="Xem tất cả tour" />
         {tours === null ? <Loading /> : tours.length ? (
-          <div className="grid grid-3 lp-tours">{tours.map((t) => <div key={t.tourId} data-reveal><TourCard t={t} /></div>)}</div>
+          <div className="grid grid-3 lp-tours">{tours.map((t) => <div key={t.id} data-reveal><TourCard t={t} /></div>)}</div>
         ) : <p className="muted">Chưa có tour đang mở bán.</p>}
       </section>
 
@@ -217,11 +218,11 @@ export default function Home() {
           <Head eyebrow="Tạp chí" title="Tin tức & sự kiện" to="/tin-tuc" more="Xem tất cả bài viết" />
           <div className="grid grid-3">
             {tin.map((n) => (
-              <Link key={n.tinTucId} to={`/tin-tuc/${n.slug}`} className="lp-news" data-reveal>
-                <div className="pic"><span style={{ backgroundImage: `url(${imgUrl(n.anhBia) || anhMacDinh(n)})` }} /></div>
+              <Link key={n.id} to={`/tin-tuc/${n.slug}`} className="lp-news" data-reveal>
+                <div className="pic"><span style={{ backgroundImage: `url(${imgUrl(n.coverImageUrl) || anhMacDinh(n)})` }} /></div>
                 <div className="body">
-                  <small><b>{tenChuyenMuc(n.chuyenMuc)}</b> · {fmtDate(n.ngayDang)}</small>
-                  <h3>{n.tieuDe}</h3>
+                  <small><b>{tenChuyenMuc(n.category)}</b> · {fmtDate(n.publishedAt)}</small>
+                  <h3>{n.title}</h3>
                 </div>
               </Link>
             ))}
@@ -300,8 +301,8 @@ function Newsletter() {
     e.preventDefault()
     setSt({ busy: true, ok: '', err: '' })
     try {
-      await api.post('/api/public/lien-he', {
-        hoTen: 'Khách đăng ký bản tin', email, tieuDe: 'Đăng ký nhận bản tin', noiDung: 'Đăng ký nhận bản tin: tour mới, ưu đãi, lễ hội, kinh nghiệm du lịch',
+      await api.post('/api/v1/contact-messages', {
+        fullName: 'Khách đăng ký bản tin', email, subject: 'Đăng ký nhận bản tin', message: 'Đăng ký nhận bản tin: tour mới, ưu đãi, lễ hội, kinh nghiệm du lịch',
       })
       setSt({ busy: false, ok: 'Cảm ơn bạn! Bản tin sẽ được gửi đến email của bạn.', err: '' })
       setEmail('')

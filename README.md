@@ -3,7 +3,7 @@
 Đồ án môn **Lập trình ứng dụng hướng đối tượng**: website giới thiệu du lịch, đặt tour và gợi ý lịch trình cho khách du lịch tỉnh Vĩnh Long mới (khu vực Vĩnh Long, Bến Tre, Trà Vinh cũ).
 
 > Backend đã viết lại xong trên nhánh `hoanglong` (10 giai đoạn, xem [`docs/KE_HOACH_BACKEND.md`](docs/KE_HOACH_BACKEND.md)).
-> **Frontend vẫn gọi API của bản cũ** nên chưa chạy cùng backend mới; việc cần sửa nằm ở [`docs/API_CHANGES.md`](docs/API_CHANGES.md).
+> Frontend đã chuyển sang API mới `/api/v1` (đối chiếu API cũ → mới ở [`docs/API_CHANGES.md`](docs/API_CHANGES.md)) và có thêm trang **Gợi ý lịch trình** (`/goi-y-lich-trinh`).
 
 | Thành phần | Công nghệ |
 |---|---|
@@ -37,7 +37,7 @@ Khoảng 30 giây sau backend chạy ở http://localhost:8081. Bảng trong CSD
 | http://localhost:8081/swagger-ui.html | Tài liệu và thử mọi API. Gọi `POST /api/v1/auth/login`, chép `token`, bấm **Authorize** và dán vào để thử API cần đăng nhập |
 | http://localhost:8081/actuator/health | Tình trạng backend (`UP`) |
 
-Frontend (khi đã sửa theo API mới): `cd frontend && cp .env.example .env && npm install && npm run dev` → http://localhost:5173.
+Frontend: `cd frontend && cp .env.example .env && npm install && npm run dev` → http://localhost:5173.
 
 Dừng CSDL: `docker compose down` (giữ dữ liệu) hoặc `docker compose down -v` (xóa sạch, lần chạy sau nạp lại demo). Nếu cổng 3306 đã bị chiếm (thường do XAMPP hoặc MySQL cài sẵn trên máy đang chạy): tắt chương trình đó, hoặc chạy `DB_PORT=3307 docker compose up -d` và đặt `DB_URL=jdbc:mysql://localhost:3307/vinhlongtour`.
 
@@ -122,15 +122,6 @@ vinhlong-travel/
 │   │   └── common/           # lỗi chung, phân trang, cấu hình
 │   ├── src/main/resources/db/migration/   # Flyway: V1__... tới V9__...
 │   └── postman/              # bộ kiểm thử Postman + file mẫu để thử upload
-├── frontend/                 # React (đang chờ sửa theo API mới)
+├── frontend/                 # React + Vite, gọi API /api/v1
 └── docs/                     # kế hoạch, đối chiếu API, sơ đồ, dữ liệu điểm đến
 ```
-
-Các gói lớn (`auth`, `catalog`, `tour`, `booking`, `planner`, `content`) chia tiếp `domain` (entity tự giữ quy tắc), `repository`, `service`, `web` (controller + DTO); gói nhỏ để phẳng.
-
-## Quy ước viết code
-
-- Tên class, method, biến, bảng, API bằng **tiếng Anh**.
-- Mỗi class có **chú thích Javadoc tiếng Việt ở đầu**, nói class đó là gì và dùng để làm gì.
-- Entity không có setter tùy tiện: muốn đổi dữ liệu thì gọi phương thức nghiệp vụ (`departure.reserveSeats(n)`, `booking.recordManualPayment(...)`), để quy tắc nằm một chỗ.
-- Lỗi trả về cho frontend luôn có dạng `{ "code": "...", "message": "...", "fields": {...} }`.

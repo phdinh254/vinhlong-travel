@@ -47,10 +47,10 @@ function FooterContact({ cfg }) {
     <div className="foot-col">
       <h4>Liên hệ</h4>
       <ul className="foot-contact">
-        {cfg.DIA_CHI && <li><Icon name="pin" /><span>{cfg.DIA_CHI}</span></li>}
+        {cfg.ADDRESS && <li><Icon name="pin" /><span>{cfg.ADDRESS}</span></li>}
         {tel && <li><Icon name="phone" /><a href={`tel:${tel}`}>{cfg.HOTLINE}</a></li>}
         {cfg.EMAIL && <li><Icon name="mail" /><a href={`mailto:${cfg.EMAIL}`}>{cfg.EMAIL}</a></li>}
-        {cfg.GIO_LAM_VIEC && <li><Icon name="clock" /><span>{cfg.GIO_LAM_VIEC}</span></li>}
+        {cfg.SUPPORT_HOURS && <li><Icon name="clock" /><span>{cfg.SUPPORT_HOURS}</span></li>}
       </ul>
     </div>
   )

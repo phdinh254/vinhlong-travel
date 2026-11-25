@@ -8,6 +8,7 @@ export const MAIN_MENU = [
   ['/', 'Trang chủ'],
   ['/gioi-thieu', 'Giới thiệu'],
   ['/tour', 'Tour du lịch'],
+  ['/goi-y-lich-trinh', 'Gợi ý lịch trình'],
   ['/dich-vu', 'Dịch vụ'],
   ['/tin-tuc', 'Tin tức'],
   ['/lien-he', 'Liên hệ'],
@@ -16,6 +17,7 @@ export const MAIN_MENU = [
 /** Cột "Khám phá" ở footer */
 export const FOOTER_EXPLORE_MENU = [
   ['/tour', 'Tour du lịch'],
+  ['/goi-y-lich-trinh', 'Gợi ý lịch trình'],
   ['/dich-vu', 'Dịch vụ'],
   ['/gioi-thieu', 'Về chúng tôi'],
   ['/tin-tuc', 'Cẩm nang du lịch'],
@@ -28,9 +30,9 @@ export const FOOTER_EXPLORE_MENU = [
  * Mỗi mục: [slug, tiêu đề, khóa cấu hình chứa nội dung HTML (admin soạn trong "Giới thiệu & thông tin")]
  */
 export const POLICY_MENU = [
-  ['dieu-khoan', 'Điều khoản đặt tour', 'CS_DIEU_KHOAN'],
-  ['bao-mat', 'Chính sách bảo mật', 'CS_BAO_MAT'],
-  ['huy-tour', 'Chính sách hủy tour', 'CS_HUY_TOUR'],
+  ['dieu-khoan', 'Điều khoản đặt tour', 'TERMS_HTML'],
+  ['bao-mat', 'Chính sách bảo mật', 'PRIVACY_HTML'],
+  ['huy-tour', 'Chính sách hủy tour', 'CANCELLATION_HTML'],
 ]
 
 /** Mạng xã hội: [khóa cấu hình, tên hiển thị] (icon nằm trong SiteFooter) */

@@ -14,7 +14,7 @@ export default function PublicLayout() {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    api.get('/api/public/cau-hinh').then((r) => setCfg(r.data)).catch(() => {})
+    api.get('/api/v1/site-settings').then((r) => setCfg(r.data)).catch(() => {})
   }, [])
 
   // Header nền mờ (glass) khi cuộn trang
@@ -40,7 +40,7 @@ export default function PublicLayout() {
             {user ? (
               <>
                 {isAdmin && <Link className="btn sm sun" to="/admin">Quản trị</Link>}
-                <Link to="/tai-khoan" className="small">👤 {user.hoTen}</Link>
+                <Link to="/tai-khoan" className="small">👤 {user.fullName}</Link>
                 <button className="btn secondary sm" onClick={() => { logout(); nav('/') }}>Đăng xuất</button>
               </>
             ) : (

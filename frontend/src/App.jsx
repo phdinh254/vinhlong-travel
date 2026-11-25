@@ -19,6 +19,7 @@ import Policy from './pages/public/Policy.jsx'
 import Login from './pages/public/Login.jsx'
 import Register from './pages/public/Register.jsx'
 import Account from './pages/public/Account.jsx'
+import TripPlanner from './pages/public/TripPlanner.jsx'
 
 import Dashboard from './pages/admin/Dashboard.jsx'
 import AdminTours from './pages/admin/Tours.jsx'
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="tour" element={<Tours />} />
         <Route path="dich-vu" element={<Services />} />
         <Route path="tour/:id" element={<TourDetail />} />
+        <Route path="goi-y-lich-trinh" element={<TripPlanner />} />
         <Route path="dat-tour/:dotId" element={<Booking />} />
         <Route path="don/:maDon" element={<BookingView />} />
         <Route path="tra-cuu" element={<Lookup />} />

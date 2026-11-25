@@ -18,18 +18,18 @@ export default function Login() {
   const { login, loginGoogle } = useAuth()
   const [sp] = useSearchParams()
   const nav = useNavigate()
-  const [f, setF] = useState({ email: '', matKhau: '' })
+  const [f, setF] = useState({ email: '', password: '' })
   const [show, setShow] = useState(false)
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
   const next = sp.get('next')
 
-  const done = (u) => nav(next || (u.vaiTro === 'ADMIN' ? '/admin' : '/'))
+  const done = (u) => nav(next || (u.role === 'ADMIN' ? '/admin' : '/'))
 
   const submit = async (e) => {
     e.preventDefault()
     setBusy(true); setErr('')
-    try { done(await login(f.email, f.matKhau)) } catch (x) { setErr(errMsg(x)) } finally { setBusy(false) }
+    try { done(await login(f.email, f.password)) } catch (x) { setErr(errMsg(x)) } finally { setBusy(false) }
   }
 
   return (
@@ -61,7 +61,7 @@ export default function Login() {
           <label className="lg-field">
             <span className="sr-only">Mật khẩu</span>
             <input type={show ? 'text' : 'password'} required autoComplete="current-password" placeholder="Mật khẩu"
-              value={f.matKhau} onChange={(e) => setF({ ...f, matKhau: e.target.value })} />
+              value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />
             <button type="button" className="lg-eye" onClick={() => setShow(!show)} aria-label={show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}>
               <Eye off={!show} />
             </button>
@@ -71,17 +71,18 @@ export default function Login() {
 
           <button className="lg-submit" disabled={busy}>{busy ? 'Đang đăng nhập…' : 'Đăng nhập'}</button>
 
-          <div className="lg-or"><span>hoặc đăng nhập với</span></div>
-
-          <div className="lg-social">
-            {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
-              <GoogleLogin
-                type="icon" shape="circle" size="large" locale="vi"
-                onSuccess={async (r) => { try { done(await loginGoogle(r.credential)) } catch (x) { setErr(errMsg(x)) } }}
-                onError={() => setErr('Đăng nhập Google thất bại')}
-              />
-            ) : <small>Chưa cấu hình VITE_GOOGLE_CLIENT_ID</small>}
-          </div>
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+            <>
+              <div className="lg-or"><span>hoặc đăng nhập với</span></div>
+              <div className="lg-social">
+                <GoogleLogin
+                  type="icon" shape="circle" size="large" locale="vi"
+                  onSuccess={async (r) => { try { done(await loginGoogle(r.credential)) } catch (x) { setErr(errMsg(x)) } }}
+                  onError={() => setErr('Đăng nhập Google thất bại')}
+                />
+              </div>
+            </>
+          )}
 
           <p className="lg-foot">Chưa có tài khoản? <Link to={`/dang-ky${next ? `?next=${encodeURIComponent(next)}` : ''}`}>Đăng ký ngay</Link></p>
         </form>

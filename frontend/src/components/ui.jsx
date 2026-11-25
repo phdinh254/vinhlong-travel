@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { imgUrl, money, uploadImage, errMsg } from '../api'
 import { Link } from 'react-router-dom'
-import { tourImage, tenKhuVuc } from '../tourUtils.js'
+import { tourImage, tenKhuVuc, thoiLuong } from '../tourUtils.js'
 
 export function Badge({ map, value }) {
   const [label, cls] = map[value] || [value, 'muted']
@@ -50,14 +50,12 @@ const ngayNgan = (v) => new Date(v).toLocaleDateString('vi-VN', { day: '2-digit'
  * onCompare (tùy chọn): hiện nút "So sánh" trên ảnh; compared = đang được chọn để so sánh.
  */
 export function TourCard({ t, onCompare, compared = false }) {
-  const sapHet = t.choConLai != null && t.choConLai > 0 && t.choConLai <= 5
   return (
     <article className="tour-card">
-      <Link to={`/tour/${t.tourId}`} className="thumb" aria-label={t.tenTour}>
+      <Link to={`/tour/${t.id}`} className="thumb" aria-label={t.name}>
         <img src={tourImage(t)} alt="" loading="lazy" />
         <span className="tc-tags">
-          {t.noiBat && <span className="tc-tag hot">Nổi bật</span>}
-          {sapHet && <span className="tc-tag">Còn {t.choConLai} chỗ</span>}
+          {t.featured && <span className="tc-tag hot">Nổi bật</span>}
         </span>
       </Link>
       {onCompare && (
@@ -66,22 +64,24 @@ export function TourCard({ t, onCompare, compared = false }) {
         </button>
       )}
       <div className="body">
-        <div className="tc-region">{(t.khuVucs || []).map(tenKhuVuc).join(' · ')}</div>
-        <h3><Link to={`/tour/${t.tourId}`}>{t.tenTour}</Link></h3>
+        <div className="tc-region">{(t.regions || []).map((r) => tenKhuVuc(r.name)).join(' · ')}</div>
+        <h3><Link to={`/tour/${t.id}`}>{t.name}</Link></h3>
         <ul className="tc-facts">
-          <li><span aria-hidden="true">⏱</span> {t.thoiLuong}</li>
-          <li><span aria-hidden="true">📍</span> {t.diemKhoiHanh ? `Đón tại ${t.diemKhoiHanh}` : 'Liên hệ để chọn điểm đón'}</li>
-          {t.ngayKhoiHanh && <li><span aria-hidden="true">📅</span> Khởi hành gần nhất {ngayNgan(t.ngayKhoiHanh)}</li>}
+          <li><span aria-hidden="true">⏱</span> {thoiLuong(t)}</li>
+          {(t.categories || []).length > 0 && <li><span aria-hidden="true">🏷</span> {t.categories.map((c) => c.name).join(', ')}</li>}
+          {t.nextDepartureAt
+            ? <li><span aria-hidden="true">📅</span> Khởi hành gần nhất {ngayNgan(t.nextDepartureAt)}</li>
+            : <li><span aria-hidden="true">📅</span> Liên hệ để biết lịch khởi hành</li>}
         </ul>
         <div className="grow" />
         <div className="tc-foot">
           <div>
             <div className="muted small">Giá từ</div>
-            <div className="price">{t.giaTu ? money(t.giaTu) : 'Liên hệ'}</div>
+            <div className="price">{t.fromPrice ? money(t.fromPrice) : 'Liên hệ'}</div>
           </div>
           <div className="tc-actions">
-            <Link className="btn secondary sm" to={`/tour/${t.tourId}`}>Chi tiết</Link>
-            <Link className="btn sm" to={`/tour/${t.tourId}#lich-khoi-hanh`}>Đặt tour</Link>
+            <Link className="btn secondary sm" to={`/tour/${t.id}`}>Chi tiết</Link>
+            <Link className="btn sm" to={`/tour/${t.id}#lich-khoi-hanh`}>Đặt tour</Link>
           </div>
         </div>
       </div>

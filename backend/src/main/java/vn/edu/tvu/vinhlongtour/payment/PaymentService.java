@@ -14,9 +14,12 @@ import vn.edu.tvu.vinhlongtour.booking.service.PriceCalculator;
 import vn.edu.tvu.vinhlongtour.booking.web.BookingDtos.BookingDetail;
 import vn.edu.tvu.vinhlongtour.common.ApiException;
 import vn.edu.tvu.vinhlongtour.common.AppProperties;
+import vn.edu.tvu.vinhlongtour.payment.PayOsGateway.CreatedLink;
+import vn.edu.tvu.vinhlongtour.payment.PayOsGateway.PaymentInfo;
+import vn.edu.tvu.vinhlongtour.payment.PayOsGateway.Transaction;
 import vn.edu.tvu.vinhlongtour.payment.PaymentDtos.ManualPaymentRequest;
-import vn.edu.tvu.vinhlongtour.payment.PaymentDtos.VnPayLinkRequest;
-import vn.edu.tvu.vinhlongtour.payment.PaymentDtos.VnPayLinkResponse;
+import vn.edu.tvu.vinhlongtour.payment.PaymentDtos.PayOsLinkRequest;
+import vn.edu.tvu.vinhlongtour.payment.PaymentDtos.PayOsLinkResponse;
 import vn.edu.tvu.vinhlongtour.tour.domain.Departure;
 import vn.edu.tvu.vinhlongtour.tour.domain.DepartureStatus;
 import vn.edu.tvu.vinhlongtour.tour.repository.DepartureRepository;
@@ -24,42 +27,35 @@ import vn.edu.tvu.vinhlongtour.tour.repository.DepartureRepository;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Nghiệp vụ thanh toán: tạo link VNPay, xử lý kết quả VNPay gửi về (IPN/trang kết quả) và admin xác nhận
- * chuyển khoản/tiền mặt. Mọi khoản tiền vào đều xử lý khi đã khóa dòng đơn, nên VNPay gửi hai thông báo
- * cùng lúc cũng không làm mất hay cộng trùng tiền.
+ * Nghiệp vụ thanh toán: tạo link payOS, ghi nhận kết quả payOS (webhook có chữ ký, hoặc hỏi lại payOS khi khách
+ * quay về trang kết quả) và admin xác nhận chuyển khoản/tiền mặt. Mọi khoản tiền vào đều xử lý khi đã khóa dòng đơn,
+ * nên webhook và trang kết quả cùng báo một giao dịch cũng không làm mất hay cộng trùng tiền.
  */
 @Service
 @Transactional
 public class PaymentService {
 
-    /** Kết quả xử lý dữ liệu VNPay gửi về, kèm mã trả lời IPN theo tài liệu VNPay. */
+    /** Kết quả xử lý một thông báo thanh toán từ payOS. */
     public enum CallbackResult {
-        CONFIRMED("00", "Confirm Success"),
-        NOT_FOUND("01", "Order not found"),
-        ALREADY_CONFIRMED("02", "Order already confirmed"),
-        INVALID_AMOUNT("04", "Invalid amount"),
-        INVALID_SIGNATURE("97", "Invalid Checksum");
-
-        private final String rspCode;
-        private final String message;
-
-        CallbackResult(String rspCode, String message) {
-            this.rspCode = rspCode;
-            this.message = message;
-        }
-
-        public Map<String, String> toIpnResponse() {
-            return Map.of("RspCode", rspCode, "Message", message);
-        }
+        CONFIRMED,
+        NOT_FOUND,
+        ALREADY_CONFIRMED,
+        INVALID_AMOUNT,
+        INVALID_SIGNATURE,
+        /** payOS chưa có kết quả cuối (khách chưa trả, hoặc đang xử lý). */
+        STILL_PENDING
     }
 
-    /** {@code success}: VNPay báo giao dịch thành công (mã 00); chỉ có nghĩa khi chữ ký hợp lệ. */
-    public record CallbackOutcome(CallbackResult result, String bookingCode, Long amount, boolean success) {}
+    /** {@code paid}: hệ thống đã ghi nhận được tiền của lần thanh toán này. */
+    public record CallbackOutcome(CallbackResult result, String bookingCode, Long amount, boolean paid, String status, String transactionNo) {}
+
+    private static final DateTimeFormatter PAYOS_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final BookingRepository bookings;
     private final PaymentRepository payments;
@@ -67,14 +63,14 @@ public class PaymentService {
     private final AccountRepository accounts;
     private final BookingService bookingService;
     private final PriceCalculator calculator;
-    private final VnPayGateway gateway;
+    private final PayOsGateway gateway;
     private final Duration linkTimeout;
     private final Duration hold;
     private final Clock clock;
 
     public PaymentService(BookingRepository bookings, PaymentRepository payments, DepartureRepository departures,
                           AccountRepository accounts, BookingService bookingService, PriceCalculator calculator,
-                          VnPayGateway gateway, AppProperties props, Clock clock) {
+                          PayOsGateway gateway, AppProperties props, Clock clock) {
         this.bookings = bookings;
         this.payments = payments;
         this.departures = departures;
@@ -82,16 +78,16 @@ public class PaymentService {
         this.bookingService = bookingService;
         this.calculator = calculator;
         this.gateway = gateway;
-        this.linkTimeout = props.vnpay().linkTimeout();
+        this.linkTimeout = props.payos().linkTimeout();
         this.hold = props.booking().hold();
         this.clock = clock;
     }
 
     /**
-     * Tạo link VNPay. Mỗi đơn chỉ có một link đang chờ trong thời gian link còn hiệu lực,
-     * để khách không lỡ trả hai lần ở hai thẻ trình duyệt.
+     * Tạo link payOS. Mỗi đơn chỉ có một link đang chờ trong thời gian link còn hiệu lực,
+     * để khách không lỡ trả hai lần ở hai thẻ trình duyệt. payOS từ chối thì không lưu gì (giao dịch bị hủy).
      */
-    public VnPayLinkResponse createVnPayLink(VnPayLinkRequest r, Long accountId, String ipAddress) {
+    public PayOsLinkResponse createPayOsLink(PayOsLinkRequest r, Long accountId) {
         LocalDateTime now = now();
         Long bookingId = bookings.findByCode(r.bookingCode().trim().toUpperCase())
                 .filter(b -> b.belongsTo(accountId) || b.matchesPhone(r.phone()))
@@ -103,7 +99,7 @@ public class PaymentService {
         }
         if (booking.hasPendingOnlinePaymentSince(now.minus(linkTimeout))) {
             throw ApiException.conflict("PAYMENT_IN_PROGRESS",
-                    "Đơn đang có một giao dịch VNPay chờ thanh toán; hãy hoàn tất giao dịch đó hoặc thử lại sau " + linkTimeout.toMinutes() + " phút");
+                    "Đơn đang có một giao dịch payOS chờ thanh toán; hãy hoàn tất giao dịch đó hoặc thử lại sau " + linkTimeout.toMinutes() + " phút");
         }
         long amount = switch (r.type()) {
             case DEPOSIT -> {
@@ -115,43 +111,89 @@ public class PaymentService {
             case FULL -> booking.remainingAmount();
         };
         Payment payment = payments.save(booking.startOnlinePayment(amount, now));
-        payment.assignReference(booking.getCode() + "-" + payment.getId());
-        String url = gateway.paymentUrl(payment.getReference(), amount, "Thanh toan don " + booking.getCode(), ipAddress, now);
-        return new VnPayLinkResponse(url, amount, payment.getReference(), now.plus(linkTimeout));
+        long orderCode = orderCode(payment.getId());
+        payment.assignReference(String.valueOf(orderCode));
+        CreatedLink link = gateway.createPaymentLink(orderCode, amount, description(booking.getCode()),
+                clock.instant().plus(linkTimeout).getEpochSecond());
+        return new PayOsLinkResponse(link.checkoutUrl(), link.qrCode(), amount, payment.getReference(), now.plus(linkTimeout));
     }
 
     /**
-     * Xử lý kết quả VNPay gửi về. Không tin dữ liệu nếu sai chữ ký hoặc sai số tiền; thanh toán đã xử lý rồi
-     * thì bỏ qua (VNPay có thể gửi IPN nhiều lần). Khóa đơn trước rồi mới đọc trạng thái thanh toán.
+     * Webhook payOS (server tới server). Không tin dữ liệu nếu sai chữ ký hoặc sai số tiền; thanh toán đã xử lý rồi
+     * thì bỏ qua (payOS có thể gửi lại). Khóa đơn trước rồi mới đọc trạng thái thanh toán.
      */
-    public CallbackOutcome processVnPayCallback(Map<String, String> params) {
-        if (!gateway.verify(params)) {
-            return new CallbackOutcome(CallbackResult.INVALID_SIGNATURE, null, null, false);
+    public CallbackOutcome processWebhook(Map<String, Object> data, String signature) {
+        if (!gateway.verifyData(data, signature)) {
+            return new CallbackOutcome(CallbackResult.INVALID_SIGNATURE, null, null, false, null, null);
         }
-        String reference = params.get("vnp_TxnRef");
+        String reference = data.get("orderCode") == null ? null : String.valueOf(data.get("orderCode"));
         Long bookingId = reference == null ? null : payments.findBookingIdByReference(reference).orElse(null);
         if (bookingId == null) {
-            return new CallbackOutcome(CallbackResult.NOT_FOUND, null, null, false);
+            return new CallbackOutcome(CallbackResult.NOT_FOUND, null, null, false, null, null);
         }
         Booking booking = bookings.findByIdForUpdate(bookingId).orElseThrow();
         Payment payment = payments.findByReference(reference).orElseThrow();
-        boolean success = "00".equals(params.get("vnp_ResponseCode")) && "00".equals(params.get("vnp_TransactionStatus"));
-        if (!amountMatches(params.get("vnp_Amount"), payment.getAmount())) {
-            return new CallbackOutcome(CallbackResult.INVALID_AMOUNT, booking.getCode(), payment.getAmount(), false);
+        boolean success = "00".equals(String.valueOf(data.get("code")));
+        String transactionNo = data.get("reference") == null ? null : String.valueOf(data.get("reference"));
+        if (!amountMatches(data.get("amount"), payment.getAmount())) {
+            return new CallbackOutcome(CallbackResult.INVALID_AMOUNT, booking.getCode(), payment.getAmount(), false, null, transactionNo);
         }
         if (!payment.isPending()) {
-            return new CallbackOutcome(CallbackResult.ALREADY_CONFIRMED, booking.getCode(), payment.getAmount(), success);
+            return new CallbackOutcome(CallbackResult.ALREADY_CONFIRMED, booking.getCode(), payment.getAmount(), payment.isSettled(), null, transactionNo);
         }
-        String raw = raw(params);
+        String raw = raw(data);
         if (success) {
             LocalDateTime now = now();
             reviveIfExpired(booking, null, now);
-            booking.confirmOnlinePayment(payment, params.get("vnp_TransactionNo"), params.get("vnp_BankCode"),
-                    paidAt(params.get("vnp_PayDate"), now), raw, now);
+            booking.confirmOnlinePayment(payment, transactionNo, str(data.get("counterAccountBankId")),
+                    paidAt(str(data.get("transactionDateTime")), now), raw, now);
         } else {
             booking.failOnlinePayment(payment, raw);
         }
-        return new CallbackOutcome(CallbackResult.CONFIRMED, booking.getCode(), payment.getAmount(), success);
+        return new CallbackOutcome(CallbackResult.CONFIRMED, booking.getCode(), payment.getAmount(), success, success ? "PAID" : null, transactionNo);
+    }
+
+    /**
+     * Khách quay về trang kết quả: tham số payOS gắn vào đường dẫn không có chữ ký, nên hỏi lại payOS trạng thái thật
+     * của link rồi mới ghi nhận. Nhờ vậy chạy trên máy cá nhân (payOS không gọi webhook vào localhost được) vẫn ghi nhận đúng.
+     */
+    public CallbackOutcome syncFromPayOs(String orderCodeText) {
+        long orderCode;
+        try {
+            orderCode = Long.parseLong(orderCodeText == null ? "" : orderCodeText.trim());
+        } catch (NumberFormatException e) {
+            return new CallbackOutcome(CallbackResult.NOT_FOUND, null, null, false, null, null);
+        }
+        String reference = String.valueOf(orderCode);
+        Long bookingId = payments.findBookingIdByReference(reference).orElse(null);
+        if (bookingId == null) {
+            return new CallbackOutcome(CallbackResult.NOT_FOUND, null, null, false, null, null);
+        }
+        Booking booking = bookings.findByIdForUpdate(bookingId).orElseThrow();
+        Payment payment = payments.findByReference(reference).orElseThrow();
+        PaymentInfo info = gateway.paymentInfo(orderCode);
+        String transactionNo = info.transactions().isEmpty() ? null : info.transactions().getFirst().reference();
+        if (info.amount() != payment.getAmount()) {
+            return new CallbackOutcome(CallbackResult.INVALID_AMOUNT, booking.getCode(), payment.getAmount(), false, info.status(), transactionNo);
+        }
+        if (!payment.isPending()) {
+            return new CallbackOutcome(CallbackResult.ALREADY_CONFIRMED, booking.getCode(), payment.getAmount(), payment.isSettled(),
+                    info.status(), payment.getTransactionNo());
+        }
+        String raw = raw(Map.of("status", String.valueOf(info.status()), "amountPaid", info.amountPaid(), "transactions", info.transactions().toString()));
+        if (info.isPaid() && info.amountPaid() >= payment.getAmount()) {
+            LocalDateTime now = now();
+            Transaction t = info.transactions().isEmpty() ? null : info.transactions().getFirst();
+            reviveIfExpired(booking, null, now);
+            booking.confirmOnlinePayment(payment, transactionNo, t == null ? null : t.counterAccountBankId(),
+                    paidAt(t == null ? null : t.transactionDateTime(), now), raw, now);
+            return new CallbackOutcome(CallbackResult.CONFIRMED, booking.getCode(), payment.getAmount(), true, info.status(), transactionNo);
+        }
+        if (info.isClosedWithoutPayment()) {
+            booking.failOnlinePayment(payment, raw);
+            return new CallbackOutcome(CallbackResult.CONFIRMED, booking.getCode(), payment.getAmount(), false, info.status(), null);
+        }
+        return new CallbackOutcome(CallbackResult.STILL_PENDING, booking.getCode(), payment.getAmount(), false, info.status(), null);
     }
 
     /** Admin xác nhận đã nhận chuyển khoản/tiền mặt kèm chứng từ. */
@@ -187,29 +229,43 @@ public class PaymentService {
         }
     }
 
-    /** vnp_Amount là số đồng × 100; phải khớp đúng số tiền của lần thanh toán. */
-    private static boolean amountMatches(String vnpAmount, long expected) {
+    /**
+     * Mã đơn hàng gửi payOS phải là số nguyên và không trùng với mọi lần đã gửi trước đó (kể cả khi CSDL được tạo lại),
+     * nên ghép giây hiện tại với 3 chữ số cuối của mã thanh toán: 13 chữ số, nhỏ hơn giới hạn số nguyên của JavaScript.
+     */
+    private long orderCode(long paymentId) {
+        return (clock.instant().getEpochSecond() % 10_000_000_000L) * 1000 + paymentId % 1000;
+    }
+
+    /** Nội dung chuyển khoản tối đa 9 ký tự: "VL" + 7 ký tự cuối của mã đơn, đủ để đối chiếu sao kê. */
+    private static String description(String bookingCode) {
+        return "VL" + bookingCode.substring(Math.max(0, bookingCode.length() - 7));
+    }
+
+    private static boolean amountMatches(Object amount, long expected) {
         try {
-            return vnpAmount != null && Long.parseLong(vnpAmount) == expected * 100;
+            return amount != null && Long.parseLong(String.valueOf(amount)) == expected;
         } catch (NumberFormatException e) {
             return false;
         }
     }
 
-    private static LocalDateTime paidAt(String vnpPayDate, LocalDateTime fallback) {
+    private static LocalDateTime paidAt(String transactionDateTime, LocalDateTime fallback) {
         try {
-            return vnpPayDate == null ? fallback : LocalDateTime.parse(vnpPayDate, VnPayGateway.VNP_TIME);
+            return transactionDateTime == null || transactionDateTime.isBlank() ? fallback : LocalDateTime.parse(transactionDateTime, PAYOS_TIME);
         } catch (DateTimeParseException e) {
             return fallback;
         }
     }
 
-    /** Lưu lại dữ liệu VNPay gửi về (bỏ chữ ký) để tra soát khi có khiếu nại. */
-    private static String raw(Map<String, String> params) {
-        Map<String, String> copy = new TreeMap<>(params);
-        copy.remove("vnp_SecureHash");
-        String text = copy.toString();
+    /** Lưu lại dữ liệu payOS gửi về để tra soát khi có khiếu nại. */
+    private static String raw(Map<String, ?> data) {
+        String text = new TreeMap<>(data).toString();
         return text.length() > 2000 ? text.substring(0, 2000) : text;
+    }
+
+    private static String str(Object o) {
+        return o == null ? null : String.valueOf(o);
     }
 
     private static String blankToNull(String s) {

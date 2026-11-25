@@ -1,22 +1,21 @@
-import { LOAI_HOAT_DONG } from '../api'
+import { hhmm } from '../api'
 
-/** Hiển thị lịch trình theo ngày (Q08–Q12) */
-export default function Itinerary({ ngays }) {
-  if (!ngays?.length) return <p className="muted">Chưa có lịch trình chi tiết.</p>
+/** Hiển thị lịch trình theo ngày: days = [{ dayNumber, title, description, activities: [{ startTime, title, description, destination }] }] */
+export default function Itinerary({ days }) {
+  if (!days?.length) return <p className="muted">Chưa có lịch trình chi tiết.</p>
   return (
     <div className="timeline">
-      {ngays.map((n) => (
-        <div className="day" key={n.ngayLichTrinhId ?? n.ngayThuMay}>
-          <h4>Ngày {n.ngayThuMay}: {n.tieuDeNgay}</h4>
-          {n.hoatDongs.map((h, i) => (
-            <div className="act" key={h.hoatDongId ?? i}>
-              <div className="muted small">
-                {h.gioBatDau ? h.gioBatDau.slice(0, 5) : ''}{h.gioKetThuc ? ` – ${h.gioKetThuc.slice(0, 5)}` : ''}
-                <br /><span className="badge muted">{LOAI_HOAT_DONG[h.loaiHoatDong]}</span>
-              </div>
+      {days.map((n) => (
+        <div className="day" key={n.dayNumber}>
+          <h4>Ngày {n.dayNumber}: {n.title}</h4>
+          {n.description && <p className="small muted" style={{ margin: '0 0 6px' }}>{n.description}</p>}
+          {(n.activities || []).map((h, i) => (
+            <div className="act" key={i}>
+              <div className="muted small">{hhmm(h.startTime)}</div>
               <div>
-                {h.noiDung}
-                {h.tenDiemDen && <div className="small" style={{ color: 'var(--green)' }}>📍 {h.tenDiemDen}</div>}
+                {h.title}
+                {h.description && <div className="small muted">{h.description}</div>}
+                {h.destination && <div className="small" style={{ color: 'var(--green)' }}>📍 {h.destination.name}</div>}
               </div>
             </div>
           ))}

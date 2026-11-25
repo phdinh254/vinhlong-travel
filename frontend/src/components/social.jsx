@@ -12,7 +12,7 @@ export const SOCIAL_ICON = {
 /** Các kênh admin đã nhập link (bảng CauHinhTrang); Zalo tự sinh từ hotline. Trả về [key, nhãn, href] */
 export function socialLinks(cfg) {
   const tel = phoneDigits(cfg.HOTLINE)
-  const links = SOCIAL_KEYS.filter(([k]) => cfg[k]).map(([k, label]) => [k, label, cfg[k]])
+  const links = SOCIAL_KEYS.filter(([k]) => cfg[`${k}_URL`]).map(([k, label]) => [k, label, cfg[`${k}_URL`]])
   if (tel) links.push(['ZALO', 'Zalo', `https://zalo.me/${tel}`])
   return links
 }

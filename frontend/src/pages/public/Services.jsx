@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
-import api, { money } from '../../api'
+import { money, loadCatalogs, EMPTY_CATALOGS } from '../../api'
 import { useReveal } from '../../useReveal.js'
 import './services.css'
 
 /**
  * Trang Dịch vụ: các tiện ích và hỗ trợ ĐI KÈM / BỔ TRỢ cho tour (không bán sản phẩm riêng lẻ).
- * Dữ liệu thật lấy từ /api/public/danh-muc: dịch vụ trong tour, điểm đón, phụ thu tùy chọn.
+ * Dữ liệu thật lấy từ API danh mục (dịch vụ trong tour, phụ thu tùy chọn).
  */
 
 const img = (k) => `/images/${k}.jpg`
@@ -52,23 +52,23 @@ const HO_TRO = [
   { ic: 'users', ten: 'Tour riêng cho nhóm', mo: 'Điều chỉnh lịch trình các tour có sẵn cho gia đình, cơ quan, trường học.', to: '/lien-he', cta: 'Yêu cầu báo giá' },
 ]
 
-const DON_VI = { THEO_NGUOI: '/ người', THEO_DON: '/ đơn', THEO_SO_LUONG: '/ phòng' }
+const DON_VI = { PER_PERSON: '/ người', PER_BOOKING: '/ đơn', PER_UNIT: '/ đơn vị' }
 
 export default function Services() {
   const { search } = useLocation()
-  const [dm, setDm] = useState({ dichVus: [], diemDons: [], phuThus: [] })
+  const [dm, setDm] = useState(EMPTY_CATALOGS)
   const root = useReveal()
 
   useEffect(() => {
-    api.get('/api/public/danh-muc').then((r) => setDm({ diemDons: [], phuThus: [], ...r.data })).catch(() => {})
+    loadCatalogs().then(setDm)
   }, [])
 
   // Link cũ /dich-vu?khuVucId=... (trước đây là danh sách tour) chuyển sang trang Tour du lịch
   if (search) return <Navigate to={`/tour${search}`} replace />
 
   const tourCo = (ten) => {
-    const d = dm.dichVus.find((x) => x.ten.toLowerCase().includes(ten.toLowerCase()))
-    return d ? `/tour?dichVuId=${d.id}` : '/tour'
+    const d = dm.amenities.find((x) => x.name.toLowerCase().includes(ten.toLowerCase()))
+    return d ? `/tour?amenityId=${d.id}` : '/tour'
   }
 
   return (
@@ -102,11 +102,6 @@ export default function Services() {
                 <Icon name={d.ic} />
                 <h3>{d.ten}</h3>
                 <p>{d.mo}</p>
-                {d.key === 'xe' && dm.diemDons.length > 0 && (
-                  <ul className="sv-pickup" aria-label="Điểm đón">
-                    {dm.diemDons.map((p) => <li key={p.id}><b>{p.ten}</b>{p.diaChi && <span>{p.diaChi}</span>}</li>)}
-                  </ul>
-                )}
                 <Link className="sv-more" to={tourCo(d.dv)}>{d.more} →</Link>
               </div>
             </article>
@@ -115,7 +110,7 @@ export default function Services() {
       </section>
 
       {/* ---------- Tùy chọn thêm khi đặt tour ---------- */}
-      {dm.phuThus.length > 0 && (
+      {dm.surcharges.length > 0 && (
         <section className="sv-band" id="tuy-chon">
           <div className="container sv-sec">
             <div className="sv-head is-center">
@@ -124,11 +119,11 @@ export default function Services() {
               <p>Bạn chọn các tiện ích này ở bước đặt tour; tổng tiền được tính và hiển thị trước khi xác nhận.</p>
             </div>
             <ul className="sv-addons">
-              {dm.phuThus.map((p) => (
-                <li key={p.ten} data-reveal>
-                  <span className="sv-addon-name">{p.ten}</span>
+              {dm.surcharges.map((p) => (
+                <li key={p.id} data-reveal>
+                  <span className="sv-addon-name">{p.name}</span>
                   <span className="sv-addon-price">
-                    {Number(p.donGia) > 0 ? <><b>{money(p.donGia)}</b> <small>{DON_VI[p.cachTinh] || ''}</small></> : <b>Miễn phí</b>}
+                    {p.unitPrice > 0 ? <><b>{money(p.unitPrice)}</b> <small>{DON_VI[p.method] || ''}</small></> : <b>Miễn phí</b>}
                   </span>
                 </li>
               ))}

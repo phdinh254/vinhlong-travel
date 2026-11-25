@@ -47,13 +47,13 @@ export default function Contact() {
   const [sent, setSent] = useState(null)
 
   useEffect(() => {
-    api.get('/api/public/tours', { params: { size: 50 } }).then((r) => setTours(r.data.content)).catch(() => {})
+    api.get('/api/v1/tours', { params: { size: 50 } }).then((r) => setTours(r.data.items)).catch(() => {})
   }, [])
 
   const L = LOAI.find((l) => l.key === loai)
   const tel = phoneDigits(cfg.HOTLINE)
   const bind = (k) => ({ value: f[k], onChange: (e) => setF({ ...f, [k]: e.target.value }) })
-  const tenTour = tours.find((t) => String(t.tourId) === String(f.tourId))?.tenTour
+  const tenTour = tours.find((t) => String(t.id) === String(f.tourId))?.name
 
   const submit = async (e) => {
     e.preventDefault()
@@ -70,8 +70,8 @@ export default function Contact() {
     const dong = [...thongTin, '', f.noiDung.trim()]
     const tieuDe = [`[${L.ten}]`, L.tour && tenTour, L.maDon && f.maDon && `Đơn ${f.maDon.trim()}`].filter(Boolean).join(' ').slice(0, 250)
     try {
-      await api.post('/api/public/lien-he', {
-        hoTen: f.hoTen.trim(), email: f.email.trim(), soDienThoai: f.soDienThoai.trim(), tieuDe, noiDung: dong.join('\n').slice(0, 2000),
+      await api.post('/api/v1/contact-messages', {
+        fullName: f.hoTen.trim(), email: f.email.trim() || null, phone: f.soDienThoai.trim() || null, subject: tieuDe, message: dong.join('\n').slice(0, 2000),
       })
       setSent({ ten: f.hoTen.trim(), kenh: f.kenh, loai: L.ten })
       setF({ ...empty })
@@ -156,7 +156,7 @@ export default function Contact() {
                   <div className="field span2"><label htmlFor="ct-tour">Tour quan tâm</label>
                     <select id="ct-tour" {...bind('tourId')}>
                       <option value="">Chưa chọn – nhờ tư vấn giúp</option>
-                      {tours.map((t) => <option key={t.tourId} value={t.tourId}>{t.tenTour}</option>)}
+                      {tours.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
                   </div>
                 )}
@@ -205,11 +205,11 @@ export default function Contact() {
             <span>Bằng mã đơn và số điện thoại →</span>
           </Link>
           <div className="ct-tile info">
-            {cfg.DIA_CHI && <p><Icon name="pin" /><span><b>Văn phòng</b>{cfg.DIA_CHI}</span></p>}
-            {cfg.GIO_LAM_VIEC && <p><Icon name="clock" /><span><b>Giờ làm việc</b>{cfg.GIO_LAM_VIEC}</span></p>}
-            {cfg.BAN_DO_NHUNG
-              ? <iframe title="Bản đồ văn phòng" src={cfg.BAN_DO_NHUNG} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
-              : cfg.DIA_CHI && <a className="ct-map-link" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cfg.DIA_CHI)}`} target="_blank" rel="noreferrer">Xem trên Google Maps →</a>}
+            {cfg.ADDRESS && <p><Icon name="pin" /><span><b>Văn phòng</b>{cfg.ADDRESS}</span></p>}
+            {cfg.SUPPORT_HOURS && <p><Icon name="clock" /><span><b>Giờ làm việc</b>{cfg.SUPPORT_HOURS}</span></p>}
+            {cfg.MAP_EMBED_URL
+              ? <iframe title="Bản đồ văn phòng" src={cfg.MAP_EMBED_URL} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+              : cfg.ADDRESS && <a className="ct-map-link" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cfg.ADDRESS)}`} target="_blank" rel="noreferrer">Xem trên Google Maps →</a>}
           </div>
         </aside>
       </div>

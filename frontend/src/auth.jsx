@@ -14,16 +14,17 @@ const readUser = () => {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(readUser)
 
-  const saveSession = useCallback(({ token, user }) => {
+  const saveSession = useCallback(({ token, account }) => {
     localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(user))
-    setUser(user)
-    return user
+    localStorage.setItem('user', JSON.stringify(account))
+    setUser(account)
+    return account
   }, [])
 
-  const login = async (email, matKhau) => saveSession((await api.post('/api/auth/login', { email, matKhau })).data)
-  const register = async (body) => saveSession((await api.post('/api/auth/register', body)).data)
-  const loginGoogle = async (credential) => saveSession((await api.post('/api/auth/google', { credential })).data)
+  const login = async (email, password) => saveSession((await api.post('/api/v1/auth/login', { email, password })).data)
+  /** body: { email, password, fullName, phone } */
+  const register = async (body) => saveSession((await api.post('/api/v1/auth/register', body)).data)
+  const loginGoogle = async (credential) => saveSession((await api.post('/api/v1/auth/google', { credential })).data)
 
   const updateUser = (u) => {
     localStorage.setItem('user', JSON.stringify(u))
@@ -37,7 +38,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, register, loginGoogle, logout, updateUser, isAdmin: user?.vaiTro === 'ADMIN' }}>
+    <AuthContext.Provider value={{ user, login, register, loginGoogle, logout, updateUser, isAdmin: user?.role === 'ADMIN' }}>
       {children}
     </AuthContext.Provider>
   )

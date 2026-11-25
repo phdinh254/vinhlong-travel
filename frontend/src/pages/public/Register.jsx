@@ -18,7 +18,7 @@ export default function Register() {
   const { register, loginGoogle } = useAuth()
   const [sp] = useSearchParams()
   const nav = useNavigate()
-  const [f, setF] = useState({ hoTen: '', email: '', soDienThoai: '', matKhau: '', nhapLai: '' })
+  const [f, setF] = useState({ fullName: '', email: '', phone: '', password: '', nhapLai: '' })
   const [show, setShow] = useState(false)
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
@@ -26,14 +26,15 @@ export default function Register() {
   const loginLink = `/dang-nhap${next ? `?next=${encodeURIComponent(next)}` : ''}`
   const bind = (k) => ({ value: f[k], onChange: (e) => setF({ ...f, [k]: e.target.value }) })
 
-  const done = (u) => nav(next || (u?.vaiTro === 'ADMIN' ? '/admin' : '/'))
+  const done = (u) => nav(next || (u?.role === 'ADMIN' ? '/admin' : '/'))
 
   const submit = async (e) => {
     e.preventDefault()
-    if (f.matKhau !== f.nhapLai) { setErr('Mật khẩu nhập lại không khớp'); return }
+    if (f.password !== f.nhapLai) { setErr('Mật khẩu nhập lại không khớp'); return }
     setBusy(true); setErr('')
     try {
       const { nhapLai: _bo, ...body } = f
+      if (!body.phone) delete body.phone
       done(await register(body))
     } catch (x) { setErr(errMsg(x)) } finally { setBusy(false) }
   }
@@ -60,7 +61,7 @@ export default function Register() {
 
           <label className="lg-field">
             <span className="sr-only">Họ tên</span>
-            <input required autoComplete="name" placeholder="Họ và tên" {...bind('hoTen')} />
+            <input required autoComplete="name" placeholder="Họ và tên" {...bind('fullName')} />
           </label>
 
           <label className="lg-field">
@@ -70,12 +71,12 @@ export default function Register() {
 
           <label className="lg-field">
             <span className="sr-only">Số điện thoại</span>
-            <input type="tel" autoComplete="tel" placeholder="Số điện thoại (không bắt buộc)" {...bind('soDienThoai')} />
+            <input type="tel" autoComplete="tel" placeholder="Số điện thoại (tùy chọn)" {...bind('phone')} />
           </label>
 
           <label className="lg-field">
             <span className="sr-only">Mật khẩu</span>
-            <input type={show ? 'text' : 'password'} required minLength={6} autoComplete="new-password" placeholder="Mật khẩu (tối thiểu 6 ký tự)" {...bind('matKhau')} />
+            <input type={show ? 'text' : 'password'} required minLength={8} autoComplete="new-password" placeholder="Mật khẩu (từ 8 ký tự)" {...bind('password')} />
             <button type="button" className="lg-eye" onClick={() => setShow(!show)} aria-label={show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}>
               <Eye off={!show} />
             </button>
@@ -90,17 +91,18 @@ export default function Register() {
 
           <button className="lg-submit" disabled={busy}>{busy ? 'Đang tạo tài khoản…' : 'Đăng ký'}</button>
 
-          <div className="lg-or"><span>hoặc đăng ký nhanh với</span></div>
-
-          <div className="lg-social">
-            {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
-              <GoogleLogin
-                type="icon" shape="circle" size="large" locale="vi"
-                onSuccess={async (r) => { try { done(await loginGoogle(r.credential)) } catch (x) { setErr(errMsg(x)) } }}
-                onError={() => setErr('Đăng nhập Google thất bại')}
-              />
-            ) : <small>Chưa cấu hình VITE_GOOGLE_CLIENT_ID</small>}
-          </div>
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+            <>
+              <div className="lg-or"><span>hoặc đăng ký nhanh với</span></div>
+              <div className="lg-social">
+                <GoogleLogin
+                  type="icon" shape="circle" size="large" locale="vi"
+                  onSuccess={async (r) => { try { done(await loginGoogle(r.credential)) } catch (x) { setErr(errMsg(x)) } }}
+                  onError={() => setErr('Đăng nhập Google thất bại')}
+                />
+              </div>
+            </>
+          )}
 
           <p className="lg-foot">Đã có tài khoản? <Link to={loginLink}>Đăng nhập</Link></p>
         </form>

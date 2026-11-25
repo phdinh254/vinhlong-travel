@@ -24,13 +24,19 @@ public final class PaymentDtos {
     }
 
     /** Khách vãng lai gửi kèm {@code phone} để chứng minh là chủ đơn; khách đã đăng nhập thì không cần. */
-    public record VnPayLinkRequest(@NotBlank String bookingCode, String phone, @NotNull PaymentType type) {}
+    public record PayOsLinkRequest(@NotBlank String bookingCode, String phone, @NotNull PaymentType type) {}
 
-    public record VnPayLinkResponse(String paymentUrl, long amount, String reference, LocalDateTime expiresAt) {}
+    /**
+     * Link thanh toán payOS: {@code checkoutUrl} là trang thanh toán của payOS, {@code qrCode} là chuỗi VietQR
+     * (có thể tự vẽ mã QR), {@code reference} là mã đơn hàng gửi sang payOS.
+     */
+    public record PayOsLinkResponse(String checkoutUrl, String qrCode, long amount, String reference, LocalDateTime expiresAt) {}
 
-    /** Kết quả hiển thị ở trang khách quay về sau khi thanh toán. */
-    public record VnPayReturnResponse(boolean validSignature, boolean success, String bookingCode, Long amount,
-                                      String transactionNo, String responseCode, String message) {}
+    /**
+     * Kết quả hiển thị ở trang khách quay về sau khi thanh toán. {@code status} là trạng thái thật hỏi lại từ payOS
+     * (PAID, PENDING, PROCESSING, CANCELLED, EXPIRED); {@code paid} chỉ đúng khi hệ thống đã ghi nhận được tiền.
+     */
+    public record PayOsReturnResponse(boolean paid, String status, String bookingCode, Long amount, String transactionNo, String message) {}
 
     public record ManualPaymentRequest(
             @NotNull @Min(1) Long amount,
